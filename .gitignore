@@ -1,4 +1,9 @@
 dataset/
+visualsync/data/
 *.zip
 *.tar.gz
 *.gz
+*.pt
+*.pth
+*.bin
+*.ckpt
