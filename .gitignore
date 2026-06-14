@@ -7,3 +7,8 @@ visualsync/data/
 *.pth
 *.bin
 *.ckpt
+*.pth
+*.pth.1
+*.mp4
+*.gif
+*.avi
