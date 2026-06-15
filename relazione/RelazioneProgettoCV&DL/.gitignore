@@ -1,0 +1,12 @@
+out/*.aux
+out/*.bbl
+out/*.bcf
+out/*.fdb_latexmk
+out/*.fls
+out/*.lof
+out/*.log
+out/*.lot
+out/*.run.xml
+out/*.synctex.gz
+out/*.toc
+out/*.xmpi

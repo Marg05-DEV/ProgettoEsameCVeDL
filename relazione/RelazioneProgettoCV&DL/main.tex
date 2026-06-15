@@ -1,0 +1,116 @@
+\documentclass[a4print,italian,lof,lot,twoside]{univpmthesis}
+\errorcontextlines=9
+
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+
+\usepackage{lmodern}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Metadata
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\thfaculty{Facolt\`{a} di Ingegneria}
+\thcourse{Corso di Laurea in Ingegneria Informatica e dell'Automazione}
+\thtitle{Visualsync}
+\thauthor{Davide Acciarri\\ Giacomo Marcucci }
+\thadvisor{Rocco Pietrini}
+
+\ayear{2025-2026}
+
+%\thesisdedication{A tutti gli Studenti dell'UNIVPM\\ per i loro primi passi in \LaTeX}
+\thlocation{Ancona}
+\thtime{Luglio 2026} % data scrittura
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amsmath,amsfonts,amssymb,bm} %<- scrittura equazioni
+%\usepackage[italian,english]{babel}
+\usepackage{graphicx} 	%<- immagini
+\usepackage{epstopdf} 	%<- conversione immagini .eps
+\usepackage{subfig} 	%<- sottofigure
+\usepackage{footnote}	%<- note a piè pagina
+\usepackage{tabularx,booktabs,multicol,multirow} %<- tabelle
+\usepackage{mathrsfs}
+\usepackage{caption}	%<- didascalie
+\usepackage{microtype}
+\usepackage{gensymb,siunitx}	%<- simboli ed unità di misura
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{frontbackmatters/bibliography.bib}
+
+\usepackage{glossaries}
+\usepackage{verbatim}
+\usepackage{xcolor}
+\usepackage[a-1b]{pdfx} %<- generazione pdf-A
+
+\input{tools/macros}
+\input{tools/letterfonts}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\eqname}{Eq.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Front matter contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frontmatter
+
+\makesofttitle
+
+\begin{comment}
+    \begin{thesisacknowledge}[italian]
+    \end{thesisacknowledge}
+
+
+\begin{thesisabstract}[italian]
+	L'obiettivo di questo studio è la ricerca di metodologie e algoritmi di machine learning che impiegano reti neurali applicabili a dati generati da materassi intelligenti dotati di sensori di pressione piezoresistivi.
+    Questo lavoro è parte di un progetto che mira allo sviluppo di una soluzione per la gestione degli ospiti delle Residenze Speciali per Anziani (RSA) che utilizzi dispositivi e sensori all'avanguardia per fornire un valido supporto allo staff nel garantire un elevato standard qualitativo di assistenza, massimizzandone l'efficacia e l’efficienza (sia clinica che operativa) salvaguardando la conformità alle linee guida fornite dalle normative.
+
+    \vspace{8mm}
+    
+    In questo elaborato ci si è posti l'obiettivo di individuare gli algoritmi e le metodologie presenti in letteratura dedicati al monitoraggio dei pazienti, al fine di migliorare la futura definizione dei requisiti del sistema e la successiva attività di sviluppo.
+
+    \vspace{8mm}
+
+    In conclusione, saranno discusse le prospettive di sviluppo futuro e le possibili evoluzioni del sistema.
+
+    
+\end{thesisabstract}
+\end{comment}
+
+\thesistoc
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Main matter contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mainmatter
+
+%\input{chapters/chapter0/guida}
+
+%\input{chapters/chapter0/chapter0}
+\input{chapters/chapter1/chapter1}
+\input{chapters/chapter2/chapter2}
+\input{chapters/chapter3/chapter3}
+\input{chapters/chapter4/chapter4}
+\input{chapters/chapter5/chapter5}
+\input{chapters/chapter6/chapter6}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Back matter contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\backmatter
+
+%\bibliographystyle{IEEEbib}
+%\bibliography{IEEEabrv,bibliografia}
+
+
+%\bibliographystyle{unsrt}
+%\bibliography{frontbackmatters/bibliography.bib}
+\printbibliography
+
+\end{document}
