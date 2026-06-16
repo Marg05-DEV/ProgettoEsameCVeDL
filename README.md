@@ -1,33 +1,22 @@
-Al giorno 13/06 abbiamo eseguito i seguenti passaggi riportati sul README del repository di visualsync: 
-- **Passo 1**: Clonazione della repository da github al server
-- **Passo 2**: Setup dell'enviroment seguendo il punto 2 sul readme. Aggiunto il comando che mancava per il download dei pesi
-- **Passo 3**: Stabilite le variabili globali per l'esecuzione del modello. Riportiamo l'esempio delle variabili globali utilizzate (noi ci dovremmo trovare dentro la cartella visualsync)
+Al giorno 13/06 abbiamo eseguito i seguenti passaggi riportati sul README del repository di visualsync. Il giorno 16/06 abbiamo dovuto replicare i comandi avendo cambaito server (Questo cambiamento era dovuto al fatto che nel vecchio server la versione di CUDA non era sufficient -> avevamoa vuto un errore al passo 7) perciò aggiorniamo i passi elencati precedentemente con alcune informazioni aggiuntive: 
+- **Passo 1**: Clonazione della repository da github al server. Fatti alcuni comandi per creare la nostra repo sia con il progetto che con la cartella della relazione;
+- **Passo 2**: Setup dell'enviroment seguendo il punto 2 sul readme. Aggiunto il comando che mancava per il download dei pesi (ricordando che il file download_weights.sh aveva alcuni errori sull'ultima riga: 2 wget e mancava `-O \preprocess` prima di `\pretrained...`).
+**RICORDA:** Nel passo 2 è riportato anche il config del venv. Nelle prossime esecuzioni ricordarsi di eseguire sul venv altrimenti i pip install fatti nel venv non vengono trovati
+- **Passo Aggiuntivo**: Trasferire il dataset zippato sul server remoto per poi poterlo utilizzare con il passo 3
+- **Passo 3**: Stabilite le variabili globali per l'esecuzione del modello. Riportiamo l'esempio delle variabili globali utilizzate (noi ci dovremmo trovare dentro la cartella visualsync). Abbiamo creato il file dentro `scripts/custom_scripts` che include tutti i seguenti comandi:
 
     ```bash
     export RAW_ROOT="/app/Progetto/dataset/PRIN_DATASET/Video ed Excel"
-    ```
-    ```bash
+
     export GROUP="ID_0"
-    ```
-    ```bash
     export START_SEC=15
-    ```
-    ```bash
     export END_SEC=30
-    ```
-    ```bash
     export FPS=10
-    ```
-    ```bash
+
     export DATA_ROOT="data/prin_${GROUP}_${START_SEC}_${END_SEC}"
-    ```
-    ```bash
     export TRACK_ROOT="tracks/prin_${GROUP}_${START_SEC}_${END_SEC}"
-    ```
-    ```bash
     export RESULT_ROOT="results/prin_${GROUP}_${START_SEC}_${END_SEC}"
-    ```
-    ```bash
+    
     export MASK_PREFIX="deva_improved"
     ```
 
@@ -36,6 +25,12 @@ Al giorno 13/06 abbiamo eseguito i seguenti passaggi riportati sul README del re
     - The output frame folders are named rgb_aligned.
     - By default, TOP and FPV are horizontally flipped during extraction because this improved matching behavior in our tests.
     - If a camera does not need flipping, remove it from --flip_views.
+  
+  Per lanciare lo script bisogna eseguire il seguente comando
+  ```bash
+  bash script/custom_scripts/set_globals_variables.sh ID_<gruppo> <start_sec> <end_sec> <fps>
+  ```
+  I valori di default sono: `GROUP = ID_0`, `START_SEC = 15`, `END_SEC = 30`, `FPS = 10`
 
 Riprendiamo la preparazione e l'esecuzione del modello dal punto 4 dove andiamo a preparare, dentro visualsync la cartella e la successiva struttura che accoglierà i dati croppati che il modello vuole ed inoltre raccoglierà i risultati del modello. 
 
