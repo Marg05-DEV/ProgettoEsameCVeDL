@@ -50,12 +50,16 @@ Appena viene avviata la sessione controllare se il venv è attivo (cioè se c'è
 source vissync/bin/activate
 ```
 
+Infatti molti (probabilmente tutti) dei pip install indicati successivamente sono stati fatti perchè non avevamo il venv attivo e non si trovavano i pacchetti installati effettivamente nel venv. Guardare il file `requirements.txt` per i pacchetti installati
+
 Poi eseguire lo script per impostare le variabili globali che velocizza il processo descritto sopra:
 
 ```bash
-bash scripts/custom_scripts/set_globals_variables.sh ID_<gruppo> <start_sec> <end_sec> <fps>
+source scripts/custom_scripts/set_globals_variables.sh ID_<gruppo> <start_sec> <end_sec> <fps>
 ```
 I valori di default sono: `GROUP = ID_0`, `START_SEC = 15`, `END_SEC = 30`, `FPS = 10`
+
+**ATTENZIONE:** Usare `source` e non `bash` altrimenti le variabili vengono settate in una 'sub-shell' e muoiono con lo script
 
 A questo punto possiamo passare al passo 4
 
@@ -105,10 +109,8 @@ find "$DATA_ROOT" -path "*/rgb_aligned/*.jpg" | wc -l
 
 Questo punto va a prendere uno dei video del dataset che indichiamo e lo prepara seguendo le condizioni imposta dal modello (Il modello non accetta in input un video ma vuole una sequenza di imamgine per ogni punto di vista). Inoltre possiamo limitare il video a uno specifico intevallo di tempo definito attraverso le VARIABILI GLOBALI del passo 3. Un altra impostazione riguarda gli fps.
 
-Abbiamo dovuto installare la libreria cv2 con il comando
-```bash
-pip install opencv-python
-```
+~~Abbiamo dovuto installare la libreria cv2 con il comando~~
+~~```pip install opencv-python```~~ (non necessario con il venv attivo)
 
 ### Passo 5: Create GPT/SAM2 tag files
 
@@ -201,18 +203,14 @@ $DATA_ROOT/ID_0_fpv_000_150/deva_improved/Annotations
 ```
 ---
 
-Abbiamo installato i seguenti moduli
-```
-pip install torch
-pip install supervision
-pip install torchvision
-pip install hydra-core
-pip install iopath
-```
 
-L'esecuzione per la segmentazione del gruppo ID_0 è durata circa 16 ore e 46 minuti
+~~Abbiamo installato i seguenti moduli (torch, supervision, torchvision, hydra-core, iopath)~~ (già nel venv se attivo)
 
-Il comando per vedere se l'esecuzione è andata a buon fine riporta proprio quello che ci si aspettava 
+ - **TENTATIVO 2 (prima volta che si arrivava al passo 6)**:
+ L'esecuzione per la segmentazione del gruppo ID_0 è durata circa 16 ore e 46 minuti
+ - **TENTATIVO 3**:
+
+Il comando per vedere se l'esecuzione è andata a buon fine riporta proprio quello che ci si aspettava (in entrambi i tentativi)
 ```bash
 data/prin_ID_0_15_30/ID_0_cam_top_000_150/deva_improved/Annotations
 data/prin_ID_0_15_30/ID_0_cam_tpv_000_150/deva_improved/Annotations
