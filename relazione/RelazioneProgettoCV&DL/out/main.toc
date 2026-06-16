@@ -1,7 +1,22 @@
 \babel@toc {italian}{}\relax 
 \babel@toc {italian}{}\relax 
 \babel@toc {italian}{}\relax 
-\contentsline {chapter}{\numberline {1}Capitolo 1}{1}{chapter.1}%
-\contentsline {chapter}{\numberline {2}Capitolo 2}{3}{chapter.2}%
+\contentsline {chapter}{\numberline {1}Introduzione}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Stato dell'arte}{3}{chapter.2}%
 \contentsline {chapter}{\numberline {3}Strumenti e architetture}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Struttura Dataset}{5}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Modelli}{5}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}GPT}{5}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Grounded-SAM}{5}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}DEVA}{5}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}CoTracker3}{5}{subsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.2.5}Mast3R}{5}{subsection.3.2.5}%
+\contentsline {subsection}{\numberline {3.2.6}VGGT}{5}{subsection.3.2.6}%
+\contentsline {section}{\numberline {3.3}Le tre fasi di visualsync}{5}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Fase 0}{5}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Fase 1}{5}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Fase 2}{5}{subsection.3.3.3}%
+\contentsline {chapter}{\numberline {4}Miglioramenti e ottimizzazioni architetturali}{7}{chapter.4}%
+\contentsline {chapter}{\numberline {5}Risultati finali}{9}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Conclusioni}{11}{chapter.6}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

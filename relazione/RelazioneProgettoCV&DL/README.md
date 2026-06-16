@@ -15,4 +15,4 @@
 8. BIBLIOGRAFIA
 
 ## Consigli
-- SI all'usare l'ia ma porre attenzione a non usare caratteri tipici della generazione artificiale che non sono tipici del linguaggio naturale (punti e virgola, tratto orizzontale lungo, ...)
+- SI all'usare l'IA ma porre attenzione a non usare caratteri tipici della generazione artificiale che non sono tipici del linguaggio naturale (punti e virgola, tratto orizzontale lungo, ...)

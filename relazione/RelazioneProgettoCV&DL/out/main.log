@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.10)  16 JUN 2026 11:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.10)  16 JUN 2026 18:01
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -663,234 +663,7 @@ Package: translations 2022/02/05 v1.12 internationalization of LaTeX2e packages 
 \l__siunitx_sexagesimal_tmp_dim=\dimen276
 \l__siunitx_sexagesimal_marker_box=\box115
 \l__siunitx_sexagesimal_unit_box=\box116
-) (c:/texlive/2026/texmf-dist/tex/latex/biblatex/biblatex.sty
-Package: biblatex 2025/07/10 v3.21 programmable bibliographies (PK/MW)
- (c:/texlive/2026/texmf-dist/tex/latex/logreq/logreq.sty
-Package: logreq 2010/08/04 v1.0 xml request logger
-\lrq@indent=\count360
- (c:/texlive/2026/texmf-dist/tex/latex/logreq/logreq.def
-File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
-))
-\c@tabx@nest=\count361
-\c@listtotal=\count362
-\c@listcount=\count363
-\c@liststart=\count364
-\c@liststop=\count365
-\c@citecount=\count366
-\c@citetotal=\count367
-\c@multicitecount=\count368
-\c@multicitetotal=\count369
-\c@instcount=\count370
-\c@maxnames=\count371
-\c@minnames=\count372
-\c@maxitems=\count373
-\c@minitems=\count374
-\c@citecounter=\count375
-\c@maxcitecounter=\count376
-\c@savedcitecounter=\count377
-\c@uniquelist=\count378
-\c@uniquename=\count379
-\c@refsection=\count380
-\c@refsegment=\count381
-\c@maxextratitle=\count382
-\c@maxextratitleyear=\count383
-\c@maxextraname=\count384
-\c@maxextradate=\count385
-\c@maxextraalpha=\count386
-\c@abbrvpenalty=\count387
-\c@highnamepenalty=\count388
-\c@lownamepenalty=\count389
-\c@maxparens=\count390
-\c@parenlevel=\count391
-\blx@tempcnta=\count392
-\blx@tempcntb=\count393
-\blx@tempcntc=\count394
-\c@blx@maxsection=\count395
-\blx@maxsegment@0=\count396
-\blx@notetype=\count397
-\blx@parenlevel@text=\count398
-\blx@parenlevel@foot=\count399
-\blx@sectionciteorder@0=\count400
-\blx@sectionciteorderinternal@0=\count401
-\blx@entrysetcounter=\count402
-\blx@biblioinstance=\count403
-\labelnumberwidth=\skip82
-\labelalphawidth=\skip83
-\biblabelsep=\skip84
-\bibitemsep=\skip85
-\bibnamesep=\skip86
-\bibinitsep=\skip87
-\bibparsep=\skip88
-\bibhang=\skip89
-\blx@bcfin=\read3
-\blx@bcfout=\write3
-\blx@langwohyphens=\language92
-\c@mincomprange=\count404
-\c@maxcomprange=\count405
-\c@mincompwidth=\count406
-Package biblatex Info: Trying to load biblatex default data model...
-Package biblatex Info: ... file 'blx-dm.def' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/blx-dm.def
-File: blx-dm.def 2025/07/10 v3.21 biblatex datamodel (PK/MW)
-)
-Package biblatex Info: Trying to load biblatex style data model...
-Package biblatex Info: ... file 'numeric.dbx' not found.
-Package biblatex Info: Trying to load biblatex custom data model...
-Package biblatex Info: ... file 'biblatex-dm.cfg' not found.
-\c@afterword=\count407
-\c@savedafterword=\count408
-\c@annotator=\count409
-\c@savedannotator=\count410
-\c@author=\count411
-\c@savedauthor=\count412
-\c@bookauthor=\count413
-\c@savedbookauthor=\count414
-\c@commentator=\count415
-\c@savedcommentator=\count416
-\c@editor=\count417
-\c@savededitor=\count418
-\c@editora=\count419
-\c@savededitora=\count420
-\c@editorb=\count421
-\c@savededitorb=\count422
-\c@editorc=\count423
-\c@savededitorc=\count424
-\c@foreword=\count425
-\c@savedforeword=\count426
-\c@holder=\count427
-\c@savedholder=\count428
-\c@introduction=\count429
-\c@savedintroduction=\count430
-\c@namea=\count431
-\c@savednamea=\count432
-\c@nameb=\count433
-\c@savednameb=\count434
-\c@namec=\count435
-\c@savednamec=\count436
-\c@translator=\count437
-\c@savedtranslator=\count438
-\c@shortauthor=\count439
-\c@savedshortauthor=\count440
-\c@shorteditor=\count441
-\c@savedshorteditor=\count442
-\c@labelname=\count443
-\c@savedlabelname=\count444
-\c@institution=\count445
-\c@savedinstitution=\count446
-\c@lista=\count447
-\c@savedlista=\count448
-\c@listb=\count449
-\c@savedlistb=\count450
-\c@listc=\count451
-\c@savedlistc=\count452
-\c@listd=\count453
-\c@savedlistd=\count454
-\c@liste=\count455
-\c@savedliste=\count456
-\c@listf=\count457
-\c@savedlistf=\count458
-\c@location=\count459
-\c@savedlocation=\count460
-\c@organization=\count461
-\c@savedorganization=\count462
-\c@origlocation=\count463
-\c@savedoriglocation=\count464
-\c@origpublisher=\count465
-\c@savedorigpublisher=\count466
-\c@publisher=\count467
-\c@savedpublisher=\count468
-\c@language=\count469
-\c@savedlanguage=\count470
-\c@origlanguage=\count471
-\c@savedoriglanguage=\count472
-\c@pageref=\count473
-\c@savedpageref=\count474
-\shorthandwidth=\skip90
-\shortjournalwidth=\skip91
-\shortserieswidth=\skip92
-\shorttitlewidth=\skip93
-\shortauthorwidth=\skip94
-\shorteditorwidth=\skip95
-\locallabelnumberwidth=\skip96
-\locallabelalphawidth=\skip97
-\localshorthandwidth=\skip98
-\localshortjournalwidth=\skip99
-\localshortserieswidth=\skip100
-\localshorttitlewidth=\skip101
-\localshortauthorwidth=\skip102
-\localshorteditorwidth=\skip103
-Package biblatex Info: Trying to load compatibility code...
-Package biblatex Info: ... file 'blx-compat.def' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/blx-compat.def
-File: blx-compat.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
-)
-Package biblatex Info: Trying to load generic definitions...
-Package biblatex Info: ... file 'biblatex.def' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/biblatex.def
-File: biblatex.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
-\c@textcitecount=\count475
-\c@textcitetotal=\count476
-\c@textcitemaxnames=\count477
-\c@biburlbigbreakpenalty=\count478
-\c@biburlbreakpenalty=\count479
-\c@biburlnumpenalty=\count480
-\c@biburlucpenalty=\count481
-\c@biburllcpenalty=\count482
-\biburlbigskip=\muskip19
-\biburlnumskip=\muskip20
-\biburlucskip=\muskip21
-\biburllcskip=\muskip22
-\c@smartand=\count483
-)
-Package biblatex Info: Trying to load bibliography style 'numeric'...
-Package biblatex Info: ... file 'numeric.bbx' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/bbx/numeric.bbx
-File: numeric.bbx 2025/07/10 v3.21 biblatex bibliography style (PK/MW)
-Package biblatex Info: Trying to load bibliography style 'standard'...
-Package biblatex Info: ... file 'standard.bbx' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/bbx/standard.bbx
-File: standard.bbx 2025/07/10 v3.21 biblatex bibliography style (PK/MW)
-\c@bbx:relatedcount=\count484
-\c@bbx:relatedtotal=\count485
-))
-Package biblatex Info: Trying to load citation style 'numeric'...
-Package biblatex Info: ... file 'numeric.cbx' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/cbx/numeric.cbx
-File: numeric.cbx 2025/07/10 v3.21 biblatex citation style (PK/MW)
-Package biblatex Info: Redefining '\cite'.
-Package biblatex Info: Redefining '\parencite'.
-Package biblatex Info: Redefining '\footcite'.
-Package biblatex Info: Redefining '\footcitetext'.
-Package biblatex Info: Redefining '\smartcite'.
-Package biblatex Info: Redefining '\supercite'.
-Package biblatex Info: Redefining '\textcite'.
-Package biblatex Info: Redefining '\textcites'.
-Package biblatex Info: Redefining '\cites'.
-Package biblatex Info: Redefining '\parencites'.
-Package biblatex Info: Redefining '\smartcites'.
-)
-Package biblatex Info: Trying to load configuration file...
-Package biblatex Info: ... file 'biblatex.cfg' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/biblatex.cfg
-File: biblatex.cfg 
-)
-Package biblatex Info: Input encoding 'utf8' detected.
-Package biblatex Info: Document encoding is UTF8 ....
- (c:/texlive/2026/texmf-dist/tex/latex/l3kernel/expl3.sty
-Package: expl3 2026-03-20 L3 programming layer (loader) 
- (c:/texlive/2026/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
-File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count486
-))
-Package biblatex Info: ... and expl3
-(biblatex)             2026-03-20 L3 programming layer (loader) 
-(biblatex)             is new enough (at least 2020/04/06),
-(biblatex)             setting 'casechanger=expl3'.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/blx-case-expl3.sty (c:/texlive/2026/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
-Package: xparse 2025-10-09 L3 Experimental document command parser
-)
-Package: blx-case-expl3 2025/07/10 v3.21 expl3 case changing code for biblatex
-)) (c:/texlive/2026/texmf-dist/tex/latex/glossaries/base/glossaries.sty
+) (c:/texlive/2026/texmf-dist/tex/latex/glossaries/base/glossaries.sty
 Package: glossaries 2026/03/06 v5.0 (NLCT)
  (c:/texlive/2026/texmf-dist/tex/latex/xkeyval/xkeyval.sty
 Package: xkeyval 2025/11/04 v2.10 package option processing (HA)
@@ -899,7 +672,7 @@ Package: xkeyval 2025/11/04 v2.10 package option processing (HA)
 \XKV@tempa@toks=\toks32
 \XKV@tempb@toks=\toks33
 )
-\XKV@depth=\count487
+\XKV@depth=\count360
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 )) (c:/texlive/2026/texmf-dist/tex/latex/mfirstuc/mfirstuc.sty
 Package: mfirstuc 2025/04/03 v2.09 (NLCT)
@@ -917,50 +690,50 @@ Package: translator 2021-05-31 v1.12d Easy translation of strings in LaTeX
 File: glossaries-italian.ldf 2014/11/23 v1.0
 ) (c:/texlive/2026/texmf-dist/tex/latex/datatool/datatool-base.sty
 Package: datatool-base 2025/12/04 v3.4.3 (NLCT)
-\l__datatool_tmpa_int=\count488
-\l__datatool_tmpb_int=\count489
-\l__datatool_tmpc_int=\count490
-\l__datatool_tmpd_int=\count491
-\l__datatool_count_int=\count492
-\l__datatool_tmp_datatype_int=\count493
+\l__datatool_tmpa_int=\count361
+\l__datatool_tmpb_int=\count362
+\l__datatool_tmpc_int=\count363
+\l__datatool_tmpd_int=\count364
+\l__datatool_count_int=\count365
+\l__datatool_tmp_datatype_int=\count366
 \l__datatool_tmpa_dim=\dimen277
 \l__datatool_tmpb_dim=\dimen278
  (c:/texlive/2026/texmf-dist/tex/latex/datatool/datatool-l3fp.def
 File: datatool-l3fp.def 2025/12/04 v3.4.3 (NLCT)
 )
 \@dtl@toks=\toks36
-\@dtl@tmpcount=\count494
-\dtl@tmplength=\skip104
+\@dtl@tmpcount=\count367
+\dtl@tmplength=\skip82
 \l__datatool_measure_box=\box117
-\dtl@sortresult=\count495
+\dtl@sortresult=\count368
  (c:/texlive/2026/texmf-dist/tex/latex/datatool/datatool-utf8.ldf
 File: datatool-utf8.ldf 2025/12/04 v3.4.3 (NLCT)
 )
-\@dtl@datatype=\count496
-\c_datatool_unknown_int=\count497
-\l__datatool_year_int=\count498
-\l__datatool_month_int=\count499
-\l__datatool_day_int=\count500
-\l__datatool_hour_int=\count501
-\l__datatool_minute_int=\count502
-\l__datatool_second_int=\count503
-\l__datatool_tzhour_int=\count504
-\l__datatool_tzminute_int=\count505
-\l__datatool_julian_int=\count506
-\l__datatool_local_julian_int=\count507
-\l__datatool_prefix_int=\count508
-\l__datatool_suffix_int=\count509
-\@dtl@foreach@level=\count510
+\@dtl@datatype=\count369
+\c_datatool_unknown_int=\count370
+\l__datatool_year_int=\count371
+\l__datatool_month_int=\count372
+\l__datatool_day_int=\count373
+\l__datatool_hour_int=\count374
+\l__datatool_minute_int=\count375
+\l__datatool_second_int=\count376
+\l__datatool_tzhour_int=\count377
+\l__datatool_tzminute_int=\count378
+\l__datatool_julian_int=\count379
+\l__datatool_local_julian_int=\count380
+\l__datatool_prefix_int=\count381
+\l__datatool_suffix_int=\count382
+\@dtl@foreach@level=\count383
 
 
 Package tracklang Warning: No `datatool' support for dialect `italian'  on input line 9924.
 
-\dtl@codeA=\count511
-\dtl@codeB=\count512
+\dtl@codeA=\count384
+\dtl@codeB=\count385
 )
-\gls@level=\count513
+\gls@level=\count386
 \@gls@tmpb=\toks37
-\gls@tmplen=\skip105
+\gls@tmplen=\skip83
 \l__glossaries_tmpa_dim=\dimen279
 \l__glossaries_tmpb_dim=\dimen280
 \glskeylisttok=\toks38
@@ -971,40 +744,40 @@ Package tracklang Warning: No `datatool' support for dialect `italian'  on input
 Package: glossary-hypernav 2026/03/06 v5.0 (NLCT)
 ) (c:/texlive/2026/texmf-dist/tex/latex/glossaries/styles/glossary-list.sty
 Package: glossary-list 2026/03/06 v5.0 (NLCT)
-\glslistdottedwidth=\skip106
+\glslistdottedwidth=\skip84
 ) (c:/texlive/2026/texmf-dist/tex/latex/glossaries/styles/glossary-long.sty
 Package: glossary-long 2026/03/06 v5.0 (NLCT)
  (c:/texlive/2026/texmf-dist/tex/latex/tools/longtable.sty
 Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
-\LTleft=\skip107
-\LTright=\skip108
-\LTpre=\skip109
-\LTpost=\skip110
-\LTchunksize=\count514
+\LTleft=\skip85
+\LTright=\skip86
+\LTpre=\skip87
+\LTpost=\skip88
+\LTchunksize=\count387
 \LTcapwidth=\dimen281
 \LT@head=\box118
 \LT@firsthead=\box119
 \LT@foot=\box120
 \LT@lastfoot=\box121
 \LT@gbox=\box122
-\LT@cols=\count515
-\LT@rows=\count516
-\c@LT@tables=\count517
-\c@LT@chunks=\count518
+\LT@cols=\count388
+\LT@rows=\count389
+\c@LT@tables=\count390
+\c@LT@chunks=\count391
 \LT@p@ftn=\toks42
 )
 Class scrbook Info: longtable captions redefined on input line 47.
-\glsdescwidth=\skip111
-\glspagelistwidth=\skip112
+\glsdescwidth=\skip89
+\glspagelistwidth=\skip90
 ) (c:/texlive/2026/texmf-dist/tex/latex/glossaries/styles/glossary-super.sty
 Package: glossary-super 2026/03/06 v5.0 (NLCT)
  (c:/texlive/2026/texmf-dist/tex/latex/supertabular/supertabular.sty
 Package: supertabular 2025/06/26 v4.2d the supertabular environment
-\c@tracingst=\count519
+\c@tracingst=\count392
 \ST@wd=\dimen282
-\ST@rightskip=\skip113
-\ST@leftskip=\skip114
-\ST@parfillskip=\skip115
+\ST@rightskip=\skip91
+\ST@leftskip=\skip92
+\ST@parfillskip=\skip93
 \ST@pageleft=\dimen283
 \ST@headht=\dimen284
 \ST@tailht=\dimen285
@@ -1017,7 +790,7 @@ Package: supertabular 2025/06/26 v4.2d the supertabular environment
 \ST@pbox=\box123
 )) (c:/texlive/2026/texmf-dist/tex/latex/glossaries/styles/glossary-tree.sty
 Package: glossary-tree 2026/03/06 v5.0 (NLCT)
-\l__glossaries_tree_max_known_level_int=\count520
+\l__glossaries_tree_max_known_level_int=\count393
 \l__glossaries_tree_offset_dim=\dimen292
 \l__glossaries_tree_namewidth_dim=\dimen293
 \l__glossaries_tree_symbolwidth_dim=\dimen294
@@ -1027,13 +800,13 @@ Package: glossary-tree 2026/03/06 v5.0 (NLCT)
 \l__glossaries_tree_symbolwidth_padding_dim=\dimen298
 \l__glossaries_tree_namesymbolwidth_dim=\dimen299
 \l__glossaries_tree_namesymbolwidth_padding_dim=\dimen300
-\l__glossaries_tree_level_int=\count521
-\glstreeindent=\skip116
+\l__glossaries_tree_level_int=\count394
+\glstreeindent=\skip94
 )) (c:/texlive/2026/texmf-dist/tex/latex/tools/verbatim.sty
 Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks43
 \verbatim@line=\toks44
-\verbatim@in@stream=\read4
+\verbatim@in@stream=\read3
 ) (c:/texlive/2026/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
  (c:/texlive/2026/texmf-dist/tex/latex/graphics-cfg/color.cfg
@@ -1052,8 +825,8 @@ Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 ) (c:/texlive/2026/texmf-dist/tex/latex/pdfx/pdfx.sty
 Package: pdfx 2024/06/24 v1.6.5f PDF/X and PDF/A support (CVR/HTH/RRM/PS)
-\pdfx@minorversion=\count522
-\pdfx@majorversion=\count523
+\pdfx@minorversion=\count395
+\pdfx@majorversion=\count396
  (c:/texlive/2026/texmf-dist/tex/generic/iftex/ifluatex.sty
 Package: ifluatex 2019/10/25 v1.5 ifluatex legacy package. Use iftex instead.
 ) (c:/texlive/2026/texmf-dist/tex/generic/iftex/ifxetex.sty
@@ -1108,9 +881,9 @@ Package: xmpincl 2021/09/22 v2.4 Include XMP data in pdflatex
 File: 8bit.def 2008/03/30 v1.1d Input encoding file
 )
 Using XMP template file: pdfa.xmp
-\xmpinclWrite=\write4
-\xmpinclRead=\read5
-\openout4 = `pdfa.xmpi'.
+\xmpinclWrite=\write3
+\xmpinclRead=\read4
+\openout3 = `pdfa.xmpi'.
 
 <<pdfa.xmpi>>
 
@@ -1565,57 +1338,54 @@ Class scrbook Info: loading recommended package `bookmark'.
 (scrbook)           `bookmarkpackage=false' before \begin{document} and
 (scrbook)           you can avoid this message adding:
 (scrbook)             \usepackage{bookmark}
-(scrbook)           before \begin{document} on input line 56.
+(scrbook)           before \begin{document} on input line 53.
  (c:/texlive/2026/texmf-dist/tex/latex/bookmark/bookmark.sty
 Package: bookmark 2023-12-10 v1.31 PDF bookmarks (HO)
  (c:/texlive/2026/texmf-dist/tex/latex/bookmark/bkm-pdftex.def
 File: bkm-pdftex.def 2023-12-10 v1.31 bookmark driver for pdfTeX and luaTeX (HO)
-\BKM@id=\count524
+\BKM@id=\count397
 ))
-
-Package biblatex Warning: 'babel/polyglossia' detected but 'csquotes' missing.
-(biblatex)                Loading 'csquotes' recommended.
-
-\@quotelevel=\count525
-\@quotereset=\count526
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 56.
-(c:/texlive/2026/texmf-dist/tex/latex/lm/t1lmr.fd
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 53.
+ (c:/texlive/2026/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+) (c:/texlive/2026/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count398
 ) (out/main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Info: Redefining \it@ocap on input line 56.
-LaTeX Info: Redefining \it@ccap on input line 56.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Info: Redefining \it@ocap on input line 53.
+LaTeX Info: Redefining \it@ccap on input line 53.
  (c:/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count527
+\scratchcounter=\count399
 \scratchdimen=\dimen301
 \scratchbox=\box124
-\nofMPsegments=\count528
-\nofMParguments=\count529
+\nofMPsegments=\count400
+\nofMParguments=\count401
 \everyMPshowfont=\toks47
-\MPscratchCnt=\count530
+\MPscratchCnt=\count402
 \MPscratchDim=\dimen302
-\MPnumerator=\count531
-\makeMPintoPDFobject=\count532
+\MPnumerator=\count403
+\makeMPintoPDFobject=\count404
 \everyMPtoPDFconversion=\toks48
 )
 *geometry* driver: auto-detecting
@@ -1655,7 +1425,7 @@ LaTeX Info: Redefining \it@ccap on input line 56.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 56.
+Package hyperref Info: Link coloring OFF on input line 53.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: subfig package v1.3 is loaded.
 Package caption Info: longtable package is loaded.
@@ -1664,13 +1434,13 @@ Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: supertabular package is loaded.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Info: Redefining \microtypecontext on input line 56.
-Package microtype Info: Applying patch `item' on input line 56.
-Package microtype Info: Applying patch `toc' on input line 56.
-Package microtype Info: Applying patch `eqnum' on input line 56.
-Package microtype Info: Applying patch `footnote' on input line 56.
-Package microtype Info: Applying patch `verbatim' on input line 56.
-LaTeX Info: Redefining \microtypesetup on input line 56.
+LaTeX Info: Redefining \microtypecontext on input line 53.
+Package microtype Info: Applying patch `item' on input line 53.
+Package microtype Info: Applying patch `toc' on input line 53.
+Package microtype Info: Applying patch `eqnum' on input line 53.
+Package microtype Info: Applying patch `footnote' on input line 53.
+Package microtype Info: Applying patch `verbatim' on input line 53.
+LaTeX Info: Redefining \microtypesetup on input line 53.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -1684,42 +1454,22 @@ Package microtype Info: No adjustment of character kerning.
  (c:/texlive/2026/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman (RS)
 )
-LaTeX Info: Redefining \celsius on input line 56.
-Package gensymb Info: Faking symbols for \degree and \celsius on input line 56.
+LaTeX Info: Redefining \celsius on input line 53.
+Package gensymb Info: Faking symbols for \degree and \celsius on input line 53.
 
 
 Package gensymb Warning: Not defining \perthousand.
 
-LaTeX Info: Redefining \ohm on input line 56.
-Package gensymb Info: Using \Omega for \ohm on input line 56.
+LaTeX Info: Redefining \ohm on input line 53.
+Package gensymb Info: Using \Omega for \ohm on input line 53.
 
 Package gensymb Warning: Not defining \micro.
 
-Package translations Info: no dictionary file `translations-basic-dictionary-italian.trsl' found. on input line 56.
+Package translations Info: no dictionary file `translations-basic-dictionary-italian.trsl' found. on input line 53.
 (c:/texlive/2026/texmf-dist/tex/latex/translations/translations-basic-dictionary-english.trsl
 File: translations-basic-dictionary-english.trsl (english translation file `translations-basic-dictionary')
 )
-Package translations Info: loading dictionary `translations-basic-dictionary' for `english'. on input line 56.
-Package biblatex Info: Trying to load language 'italian'...
-Package biblatex Info: ... file 'italian.lbx' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/lbx/italian.lbx
-File: italian.lbx 2025/07/10 v3.21 biblatex localization (PK/MW)
-)
-Package biblatex Info: Trying to load language 'english'...
-Package biblatex Info: ... file 'english.lbx' found.
- (c:/texlive/2026/texmf-dist/tex/latex/biblatex/lbx/english.lbx
-File: english.lbx 2025/07/10 v3.21 biblatex localization (PK/MW)
-)
-Package biblatex Info: Input encoding 'utf8' detected.
-Package biblatex Info: Automatic encoding selection.
-(biblatex)             Assuming data encoding 'utf8'.
-\openout3 = `main.bcf'.
-
-Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'main.bbl' found.
- (out/main.bbl)
-Package biblatex Info: Reference section=0 on input line 56.
-Package biblatex Info: Reference segment=0 on input line 56.
+Package translations Info: loading dictionary `translations-basic-dictionary' for `english'. on input line 53.
 *geometry* verbose mode - [ newgeometry ] result:
 * driver: pdftex
 * paper: custom
@@ -1757,12 +1507,12 @@ Package biblatex Info: Reference segment=0 on input line 56.
 <logoUNIVPM.pdf, id=6, 274.44255pt x 89.36261pt>
 File: logoUNIVPM.pdf Graphic file (type pdf)
 <use logoUNIVPM.pdf>
-Package pdftex.def Info: logoUNIVPM.pdf  used on input line 63.
+Package pdftex.def Info: logoUNIVPM.pdf  used on input line 60.
 (pdftex.def)             Requested size: 219.55432pt x 71.49017pt.
 Package microtype Info: Character `029' is missing
 (microtype)             in font `T1/lmr/m/sc/12'.
 (microtype)             Ignoring protrusion settings for this character.
-LaTeX Font Info:    Trying to load font information for T1+lmss on input line 63.
+LaTeX Font Info:    Trying to load font information for T1+lmss on input line 60.
  (c:/texlive/2026/texmf-dist/tex/latex/lm/t1lmss.fd
 File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -1780,10 +1530,48 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 
 ]
-Package tocbasic Info: character protrusion at toc deactivated on input line 86.
- (out/main.toc)
-\tf@toc=\write5
-\openout5 = `main.toc'.
+Package tocbasic Info: character protrusion at toc deactivated on input line 83.
+ (out/main.toc
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/lm/ot1lmr.fd
+File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/lm/omllmm.fd
+File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/lm/omslmsy.fd
+File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/lm/omxlmex.fd
+File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10.95> on input line 7.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <8> on input line 7.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <6> on input line 7.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+) (c:/texlive/2026/texmf-dist/tex/latex/microtype/mt-msa.cfg
+File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+) (c:/texlive/2026/texmf-dist/tex/latex/microtype/mt-msb.cfg
+File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
+)
+LaTeX Font Info:    Trying to load font information for U+rsfs on input line 7.
+ (c:/texlive/2026/texmf-dist/tex/latex/jknapltx/ursfs.fd
+File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
+))
+\tf@toc=\write4
+\openout4 = `main.toc'.
 
  [3
 
@@ -1794,10 +1582,10 @@ Package tocbasic Info: character protrusion at toc deactivated on input line 86.
 
 
 ]
-Package tocbasic Info: character protrusion at lof deactivated on input line 86.
+Package tocbasic Info: character protrusion at lof deactivated on input line 83.
  (out/main.lof)
-\tf@lof=\write6
-\openout6 = `main.lof'.
+\tf@lof=\write5
+\openout5 = `main.lof'.
 
  [5
 
@@ -1806,10 +1594,10 @@ Package tocbasic Info: character protrusion at lof deactivated on input line 86.
 
 
 ]
-Package tocbasic Info: character protrusion at lot deactivated on input line 86.
+Package tocbasic Info: character protrusion at lot deactivated on input line 83.
  (out/main.lot)
-\tf@lot=\write7
-\openout7 = `main.lot'.
+\tf@lot=\write6
+\openout6 = `main.lot'.
 
  [7
 
@@ -1850,31 +1638,27 @@ chapter 6.
 ) [11] [12
 
 
-]
+] (out/main.bbl) [13
 
-LaTeX Warning: Empty bibliography on input line 114.
 
-(out/main.aux)
+] (out/main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-03-20>
  ***********
-Package logreq Info: Writing requests to 'main.run.xml'.
-\openout1 = `main.run.xml'.
-
  ) 
 Here is how much of TeX's memory you used:
- 41662 strings out of 467349
- 838140 string characters out of 5419862
- 1851023 words of memory out of 5000000
- 70140 multiletter control sequences out of 15000+600000
- 665686 words of font info for 97 fonts, out of 8000000 for 9000
+ 34923 strings out of 467349
+ 701279 string characters out of 5419862
+ 1285114 words of memory out of 5000000
+ 63345 multiletter control sequences out of 15000+600000
+ 696263 words of font info for 144 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  122i,8n,121p,11386b,2798s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmbx10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmcsc10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmr10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmro10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb>
-Output written on out/main.pdf (20 pages, 277630 bytes).
+Output written on out/main.pdf (21 pages, 299236 bytes).
 PDF statistics:
- 177 PDF objects out of 1000 (max. 8388607)
- 34 named destinations out of 1000 (max. 500000)
- 22602 words of extra memory for PDF output out of 24883 (max. 10000000)
+ 276 PDF objects out of 1000 (max. 8388607)
+ 56 named destinations out of 1000 (max. 500000)
+ 39106 words of extra memory for PDF output out of 42996 (max. 10000000)
 

@@ -1,5 +1,5 @@
 \graphicspath{{chapters/chapter1/img}}
-\chapter{Capitolo 1} \label{chapter1}
+\chapter{Introduzione} \label{introduzione}
 Con la diffusione di smartphone e dispositivi portatili, è comune che uno stesso evento dinamico, come una partita di calcio, un concerto o una festa in famiglia, venga ripreso da più angolazioni da diverse persone. Tuttavia, allineare questi flussi video per scopi di ricostruzione 4D o editing professionale rimane una sfida complessa a causa della natura frammentaria e casuale delle riprese. 
 Per la sincronizzazione temporale di video multi-camera acquisiti in modo indipendente e non coordinato, è stato progettato un framework di ottimizzazione, VisualSync.
 I metodi di sincronizzazione esistenti si basano su ambienti controllati, annotazioni manuali, pattern specifici come human pose, segnali audio, o costosi setup hardware come dispositivi time-coded, nessuno dei quali è disponibile in video registrati casualmente. 
@@ -8,3 +8,4 @@ Inoltre, costruire un sistema pratico e robusto che funzioni su video reali è i
 Il problema parte da un insieme di N video asincroni che riprendono la stessa scena dinamica da diversi punti di
 vista e l'obiettivo è sincronizzarli e recuperare un timestamp allineato globalmente. Formalmente, si cerca di stimare un offset temporale per ogni video da applicare al suo tempo di clock originale fuori sincronizzazione. Dopo la sincronizzazione, i frame che condividono lo stesso tempo di clock corrisponderanno allo stesso momento in tutti i video. È possibile vedere  la sincronizzazione globale come un problema di minimizzazione dell'energia ovvero, miriamo a trovare gli offset che allineino meglio tutte le coppie di video minimizzando il loro errore di sincronizzazione pairwise. La minimizzazione dell'energia pone tre sfide: il problema di ottimizzazione è
 altamente non convesso, la formulazione è a tempo continuo, ma le osservazioni arrivano a tempi di frame discreti e che negli scenari reali, è difficile associare traiettorie dense tra fotocamere con punti di vista molto diversi e stimare pose accurate per fotocamere in movimento.
+Per scrivere questa relazione abbiamo usato come riferimento le seguenti fonti: \cite{sam2}, \cite{visualsync}, \cite{deva}, \cite{uni4d}, \cite{mast3r}, \cite{vggt}, \cite{cotracker3}, \cite{cotracker}
