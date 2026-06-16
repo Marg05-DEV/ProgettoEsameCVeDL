@@ -10,3 +10,7 @@ out/*.run.xml
 out/*.synctex.gz
 out/*.toc
 out/*.xmpi
+out/*.blg
+out/*.bbl*
+out/chapters
+out/tools
