@@ -208,7 +208,7 @@ $DATA_ROOT/ID_0_fpv_000_150/deva_improved/Annotations
 
  - **TENTATIVO 2 (prima volta che si arrivava al passo 6)**:
  L'esecuzione per la segmentazione del gruppo ID_0 è durata circa 16 ore e 46 minuti
- - **TENTATIVO 3**:
+ - **TENTATIVO 3**: La segmentazione del gruppo ID_0 è durata 44 minuti e 22 secondi
 
 Il comando per vedere se l'esecuzione è andata a buon fine riporta proprio quello che ci si aspettava (in entrambi i tentativi)
 ```bash
@@ -242,6 +242,65 @@ camera_parameters.npz
 ```
 
 Do not use `--vggt_choice full` unless `camera_parameters_full.npz` exists
+
+--- 
+Come abbiamo detto nei passi precedenti, abbiamo dovuto cambiare server per avere una versione di CUDA maggiore in quanto l'esecuzione del passo 7 non andava a buon fine (nel secondo tentativo).
+
+Nel terzo tentativo abbiamo avuto un ulteriore errore sempre dovuto all'incompatibilità della versione di CUDA con la libreria torch:
+```
+/app/Progetto/visualsync/vissync/lib/python3.10/site-packages/torch/cuda/__init__.py:187: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12020). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+Using device: cpu
+Working on sports: {'ID_0'}
+Processing sport: ID_0
+Found 152 images in ID_0 dataset.
+Found 152 images in ID_0 dataset.
+VGGT refs for ID_0: total=152, static_anchors=2, dynamic=150
+Using max_images_per_chunk=32
+Running VGGT in 5 chunks
+[VGGT chunk 1/5] images=32
+Preprocessed chunk shape: torch.Size([32, 3, 518, 518])
+Traceback (most recent call last):
+  File "/app/Progetto/visualsync/preprocess/vggt_to_colmap.py", line 1070, in <module>
+    main()
+  File "/app/Progetto/visualsync/preprocess/vggt_to_colmap.py", line 1005, in main
+    predictions, references, all_ratios = process_sport_with_vggt(BASE, sport, device, model, args.sampling_mode, args.max_images_per_chunk)
+  File "/app/Progetto/visualsync/preprocess/vggt_to_colmap.py", line 951, in process_sport_with_vggt
+    pred, refs, ratios = _run_vggt_once(base, chunk_refs, device, model)
+  File "/app/Progetto/visualsync/preprocess/vggt_to_colmap.py", line 819, in _run_vggt_once
+    dtype = torch.bfloat16 if torch.cuda.get_device_capability()[0] >= 8 else torch.float16
+  File "/app/Progetto/visualsync/vissync/lib/python3.10/site-packages/torch/cuda/__init__.py", line 682, in get_device_capability
+    prop = get_device_properties(device)
+  File "/app/Progetto/visualsync/vissync/lib/python3.10/site-packages/torch/cuda/__init__.py", line 699, in get_device_properties
+    _lazy_init()  # will define _get_device_properties
+  File "/app/Progetto/visualsync/vissync/lib/python3.10/site-packages/torch/cuda/__init__.py", line 491, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: The NVIDIA driver on your system is too old (found version 12020). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver.
+```
+
+Per risolvere abbiamo fatto i seguenti comandi per ridurre la versione di torch ( quella di prima necessitava di CUDA13):
+```bash
+pip uninstall torch torchvision torchaudio -y
+
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+Poi potrebbe servire reinstallare le dipendenze di SAM2
+```bash
+cd /app/Progetto/visualsync/Grounded-SAM-2
+pip install --no-build-isolation -e .
+```
+```bash
+cd grounding_dino
+pip install --no-build-isolation .
+```
+
+Facendo il comando riportato dal README per fare il check, viene stampato:
+```bash
+data/prin_ID_0_15_30/ID_0_cam_top_000_150/vggt/camera_parameters.npz
+data/prin_ID_0_15_30/ID_0_cam_tpv_000_150/vggt/camera_parameters.npz
+data/prin_ID_0_15_30/ID_0_fpv_000_150/vggt/camera_parameters.npz
+```
 
 ---
 ---

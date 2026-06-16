@@ -1,6 +1,7 @@
 dataset/
 visualsync/data/
 vissync/
+vggt_output/
 *.zip
 *.tar.gz
 *.gz
