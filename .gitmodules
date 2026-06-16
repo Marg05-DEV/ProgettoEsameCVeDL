@@ -1,0 +1,12 @@
+[submodule "visualsync/Grounded-SAM-2"]
+	path = visualsync/Grounded-SAM-2
+	url = https://github.com/IDEA-Research/Grounded-SAM-2.git
+[submodule "visualsync/Tracking-Anything-with-DEVA"]
+	path = visualsync/Tracking-Anything-with-DEVA
+	url = https://github.com/Davidyao99/Tracking-Anything-with-DEVA.git
+[submodule "visualsync/co-tracker"]
+	path = visualsync/co-tracker
+	url = https://github.com/facebookresearch/co-tracker
+[submodule "visualsync/mast3r"]
+	path = visualsync/mast3r
+	url = https://github.com/naver/mast3r
