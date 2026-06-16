@@ -3,4 +3,5 @@
 \babel@toc {italian}{}\relax 
 \contentsline {chapter}{\numberline {1}Capitolo 1}{1}{chapter.1}%
 \contentsline {chapter}{\numberline {2}Capitolo 2}{3}{chapter.2}%
+\contentsline {chapter}{\numberline {3}Strumenti e architetture}{5}{chapter.3}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

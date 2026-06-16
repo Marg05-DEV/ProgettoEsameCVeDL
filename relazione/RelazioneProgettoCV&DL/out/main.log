@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.10)  15 JUN 2026 10:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.10)  16 JUN 2026 11:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1864,17 +1864,17 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 41653 strings out of 467349
- 838045 string characters out of 5419862
- 1850999 words of memory out of 5000000
- 70139 multiletter control sequences out of 15000+600000
- 665354 words of font info for 93 fonts, out of 8000000 for 9000
+ 41662 strings out of 467349
+ 838140 string characters out of 5419862
+ 1851023 words of memory out of 5000000
+ 70140 multiletter control sequences out of 15000+600000
+ 665686 words of font info for 97 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  122i,8n,121p,11386b,2798s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmbx10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmcsc10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmr10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmro10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb>
-Output written on out/main.pdf (20 pages, 275713 bytes).
+Output written on out/main.pdf (20 pages, 277630 bytes).
 PDF statistics:
- 173 PDF objects out of 1000 (max. 8388607)
+ 177 PDF objects out of 1000 (max. 8388607)
  34 named destinations out of 1000 (max. 500000)
- 22594 words of extra memory for PDF output out of 24883 (max. 10000000)
+ 22602 words of extra memory for PDF output out of 24883 (max. 10000000)
 
