@@ -1,5 +1,6 @@
 dataset/
 visualsync/data/
+vissync/
 *.zip
 *.tar.gz
 *.gz

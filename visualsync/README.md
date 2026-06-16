@@ -101,7 +101,7 @@ cd ..
 
 Install VGGT from the official repository:
 
-```bash
+```bash 
 pip install -U "vggt@git+https://github.com/facebookresearch/vggt.git"
 ```
 
