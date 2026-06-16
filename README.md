@@ -25,16 +25,40 @@ Al giorno 13/06 abbiamo eseguito i seguenti passaggi riportati sul README del re
     - The output frame folders are named rgb_aligned.
     - By default, TOP and FPV are horizontally flipped during extraction because this improved matching behavior in our tests.
     - If a camera does not need flipping, remove it from --flip_views.
-  
-  Per lanciare lo script bisogna eseguire il seguente comando
-  ```bash
-  bash script/custom_scripts/set_globals_variables.sh ID_<gruppo> <start_sec> <end_sec> <fps>
-  ```
-  I valori di default sono: `GROUP = ID_0`, `START_SEC = 15`, `END_SEC = 30`, `FPS = 10`
 
 Riprendiamo la preparazione e l'esecuzione del modello dal punto 4 dove andiamo a preparare, dentro visualsync la cartella e la successiva struttura che accoglierà i dati croppati che il modello vuole ed inoltre raccoglierà i risultati del modello. 
 
-**NB.** In realtà eravamo arrivati al punto 6 dove avevamo interrotto in quanto non avevamo eseguito il download dei pesi che non era riportato inizialmente del README. Per dare continuità all'esecuzione abbiamo eliminato la cartella data che viene generata nel punto 4 e ricorsivamente anche le cartelle e i dati all'interno generati dai punti 5 e 6. Ripartiamo dal passo 4
+**NB. (secondo tentativo)** In realtà eravamo arrivati al punto 6 dove avevamo interrotto in quanto non avevamo eseguito il download dei pesi che non era riportato inizialmente del README. Per dare continuità all'esecuzione abbiamo eliminato la cartella data che viene generata nel punto 4 e ricorsivamente anche le cartelle e i dati all'interno generati dai punti 5 e 6. Ripartiamo dal passo 4
+
+**NB. (terzo tentativo)** Nel secondo tentativo abbiamo avuto bisogno di tmux al passo 6 in quanto eseguire i comandi sul terminale comportava il rischio che se si bloccava il server si bloccava anche l'esecuzione. Siamo dovuti passare ad un terzo tentativo perchè al passo 7 abbiamo avuto un errore per una versione troppo vecchia di CUDA. Perciò abbiamo ricevuto un container su un nuovo server con CUDA aggiornato e abbiamo dovuto riniziare l'esecuzione. Per questo terzo tentativo facciamo tutta l'esecuzione su tmux. Perciò riporto i comandi utili per l'esecuzione su tmux:
+- Per creare la sessione usato il comando:
+  ```bash
+  tmux new -s <nome_sessione>
+  ```
+
+  Poi si può uscire dal terminale di tmux senza fermare la sessione facendo la combinazione di tasti `Ctrl + B` e poi `D`
+  ATTENZIONE: Non fare mai `exit` quando si è su tmux con una sessione attiva che sta elaborando.
+- Per riprendere la sessione fare il comando:
+  ```bash
+  tmux attach -t <nome_sessione>
+  ```
+
+Il nome dato alla sessione dove eseguiamo è `visualsyncID0`. In questa sessione sono stati fatti i comandi dal passo 3
+
+Appena viene avviata la sessione controllare se il venv è attivo (cioè se c'è `(vissync)` all'inizio del prompt). Se non è attivo, per prima cosa fare il coamndo:
+```bash
+source vissync/bin/activate
+```
+
+Poi eseguire lo script per impostare le variabili globali che velocizza il processo descritto sopra:
+
+```bash
+bash scripts/custom_scripts/set_globals_variables.sh ID_<gruppo> <start_sec> <end_sec> <fps>
+```
+I valori di default sono: `GROUP = ID_0`, `START_SEC = 15`, `END_SEC = 30`, `FPS = 10`
+
+A questo punto possiamo passare al passo 4
+
 
 --- 
 ---
@@ -184,18 +208,6 @@ pip install supervision
 pip install torchvision
 pip install hydra-core
 pip install iopath
-```
-
-Usato tmux per l'esecuzione. Per creare la sessione usato il comando:
-```bash
-tmux new -s segmentationID0
-```
-
-Poi si può uscire dal terminale di tmux senza fermare la sessione facendo la combinazione di tasti `Ctrl + B` e poi `D`
-ATTENZIONE: Non fare mai `exit` quando si è su tmux con una sessione attiva che sta elaborando.
-Per riprendere la sessione fare il comando:
-```bash
-tmux attach -t segmentationID0
 ```
 
 L'esecuzione per la segmentazione del gruppo ID_0 è durata circa 16 ore e 46 minuti
