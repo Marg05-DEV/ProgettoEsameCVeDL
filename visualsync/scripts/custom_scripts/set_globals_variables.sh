@@ -16,6 +16,7 @@ export DATA_ROOT="data/prin_${GROUP}_${START_SEC}_${END_SEC}"
 export TRACK_ROOT="tracks/prin_${GROUP}_${START_SEC}_${END_SEC}"
 export RESULT_ROOT="results/prin_${GROUP}_${START_SEC}_${END_SEC}"
 export MASK_PREFIX="deva_improved"
+export PYTHONPATH="/app/Progetto/visualsync/mast3r:/app/Progetto/visualsync/mast3r/dust3r:$PYTHONPATH"
 
 # Riepilogo
 echo "==============================="

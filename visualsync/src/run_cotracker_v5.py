@@ -697,7 +697,7 @@ if __name__ == "__main__":
     if args.checkpoint is not None:
         model = CoTrackerPredictor(checkpoint=args.checkpoint, offline=True)
     else:
-        model = torch.hub.load("/home/vrai/anilegin/visualsync/co-tracker", "cotracker3_offline", source="local")
+        model = torch.hub.load("co-tracker", "cotracker3_offline", source="local")
     
     device = (
         "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"

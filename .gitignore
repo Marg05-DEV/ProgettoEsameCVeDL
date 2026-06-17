@@ -1,7 +1,10 @@
 dataset/
 visualsync/data/
 vissync/
-vggt_output/
+visualsync/vggt_output/
+visualsync/tracks/
+visualsync/results/
+visualsync/src/__pycache__/
 *.zip
 *.tar.gz
 *.gz

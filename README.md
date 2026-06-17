@@ -301,10 +301,320 @@ data/prin_ID_0_15_30/ID_0_cam_top_000_150/vggt/camera_parameters.npz
 data/prin_ID_0_15_30/ID_0_cam_tpv_000_150/vggt/camera_parameters.npz
 data/prin_ID_0_15_30/ID_0_fpv_000_150/vggt/camera_parameters.npz
 ```
+### Passo 8: Run CoTracker
+
+Riporto il testo del README riguardo il passo 8:
+
+---
+
+Use the SAM2 masks directly:
+
+```bash
+--mask_prefix "$MASK_PREFIX"
+```
+
+Run TOP and TPV with denser settings:
+
+```bash
+rm -rf "$TRACK_ROOT"
+mkdir -p "$TRACK_ROOT"
+
+python src/run_cotracker_all.py --dataset_root "$DATA_ROOT" --track_root "$TRACK_ROOT" --gpu 0 --mask_prefix "$MASK_PREFIX" --only static --static_interval 3 --static_grid_step 5 --skip_exist
+```
+
+Run FPV more conservatively because it is much slower:
+
+```bash
+python src/run_cotracker_all.py --dataset_root "$DATA_ROOT" --track_root "$TRACK_ROOT" --gpu 0 --mask_prefix "$MASK_PREFIX" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --skip_exist
+```
+
+If FPV becomes too sparse, rerun only FPV with a denser setting:
+
+```bash
+python src/run_cotracker_all.py --dataset_root "$DATA_ROOT" --track_root "$TRACK_ROOT" --gpu 0 --mask_prefix "$MASK_PREFIX"--only fpv --dynamic_interval 5 --dynamic_grid_step 8
+```
+
+Check:
+
+```bash
+find "$TRACK_ROOT" -name "tracks.pkl" | sort
+```
+
+Expected:
+
+```text
+$TRACK_ROOT/ID_0_cam_top_000_150/tracks.pkl
+$TRACK_ROOT/ID_0_cam_tpv_000_150/tracks.pkl
+$TRACK_ROOT/ID_0_fpv_000_150/tracks.pkl
+```
+---
+
+Inizialmente non erano state installate le dipendenze per coTracker. Questo comportava un errore quando lanciavamo lo script `src/run_cotracker_all.py`. Per risolverlo abbiamo dovuto installare le dipendenze con i seguenti comandi:
+
+```bash
+cd /app/Progetto/visualsync/co-tracker
+pip install -e .
+```
+
+
+
+Inoltre è occorso un ulteriore errore dovuto ad una stringa hard-coded che indicava un path non effettivamente esistente nel nostro file system. Infatti a riga `700` dello script in `src/run_cotracker_v5.py` (che viene lanciato dall'interno di `src/run_cotracker_all.py`) avevamo la seguente riga:
+```python
+torch.hub.load("/home/vrai/anilegin/visualsync/co-tracker", "cotracker3_offline", source="local")
+```
+
+Ed è stata sostituita con la seguente che invece utilizza un path relativo. Perciò, il comando del passo 8, va lanciato da visualsync:
+```python
+torch.hub.load("co-tracker", "cotracker3_offline", source="local")
+```
+
+Dopo aver fatto i due comandi, dal comando di check viene stampato ciò che ci aspettavamo
+
+### Passo 9: Run MASt3R image matching
+
+Riporto il testo del README riguardo il passo 9:
+
+---
+Create result root:
+
+```bash
+rm -rf "$RESULT_ROOT"
+mkdir -p "$RESULT_ROOT/$GROUP"
+```
+
+#### 9.1 TOP–TPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/img_match_v4.py --dataset_root "$DATA_ROOT" --video1_name "${GROUP}_cam_top_000_150" --video2_name "${GROUP}_cam_tpv_000_150" --save_root "$RESULT_ROOT/$GROUP" --mask_prefix "$MASK_PREFIX" --interval 2 --batch_size 16 --filter_mask --enable_blurry
+```
+
+#### 9.2 TPV–FPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/img_match_v4.py --dataset_root "$DATA_ROOT" --video1_name "${GROUP}_cam_tpv_000_150" --video2_name "${GROUP}_fpv_000_150" --save_root "$RESULT_ROOT/$GROUP" --mask_prefix "$MASK_PREFIX" --interval 3 --batch_size 16 --filter_mask --enable_blurry
+```
+
+#### 9.3 Optional TOP–FPV diagnostic
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/img_match_v4.py --dataset_root "$DATA_ROOT" --video1_name "${GROUP}_cam_top_000_150" --video2_name "${GROUP}_fpv_000_150" --save_root "$RESULT_ROOT/$GROUP" --mask_prefix "$MASK_PREFIX" --interval 3 --batch_size 16 --filter_mask --enable_blurry
+```
+
+---
+
+Come nel passo precedente, abbiamo avuto un errore dovuto alla mancanza delle dipendenze di mast3r. Per risolverlo eseguiamo i seguenti comandi che installano le dipendenze. 
+
+**Non** abbiamo potuto fare i seguenti comandi perchè mast3r non è installabile con pip 
+```bash
+pip install -e .
+Obtaining file:///app/Progetto/visualsync/mast3r
+ERROR: file:///app/Progetto/visualsync/mast3r does not appear to be a Python project: neither 'setup.py' nor 'pyproject.toml' found.
+```
+
+Perciò quello che abbiamo fatto è aggiungere mast3r e dust3r al PYTHONPATH. Però, prima di aggiungerlo dobbiamo installare le dipendenze di mast3r e dust3r con i comandi:
+
+```bash
+pip install -r requirements.txt
+pip install -r dust3r/requirements.txt
+```
+Però, prima di eseguire i comandi precedenti, ci siamo accorti che il submodule di dust3r non era stato correttamente inizializzato (infatti era vuoto). Per correggere abbiamo fatto il comando:
+
+```bash
+git submodule update --init --recursive
+```
+
+Inoltre, prima di eseguire i comandi per l'installazione delle dipendenze di mast3r e dust3r, abbiamo controllato che non venisse modificata la versioen di torch con cui avevamo avuto problemi con la compatibilità con CUDA
+
+Solo dopo abbiamo aggiunto mast3r e dust3r al PYTHONPATH con il comando:
+
+```bash
+export PYTHONPATH="/app/Progetto/visualsync/mast3r:/app/Progetto/visualsync/mast3r/dust3r:$PYTHONPATH"
+```
+Questo è stato poi aggiunto allo script per il set delel variabili globali, cioè `scripts/custom_scripts/set_globals_variables.sh`.
+
+Riportiamo i tempi di esecuzione per ogni coppia di telecamere:
+- 9.1 TOP-TPV:
+  ```bash
+  100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 352/352 [10:43<00:00,  1.83s/it]
+  done!
+  ```
+- 9.2 TPV-FPV:
+  ```bash
+  100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 157/157 [06:36<00:00,  2.52s/it]
+  done!
+  ```
+- 9.3 TOP-FPV:
+  ```bash
+  100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 157/157 [06:32<00:00,  2.50s/it]
+  done!
+  ```
+
+### Passo 10: Filter track correspondences
+
+Riporto il testo del README riguardo il passo 10:
+
+---
+
+Use relaxed thresholds for action-specific masks:
+
+```text
+min_matches = 3
+pixel_tol = 10
+min_neighbors = 1
+```
+
+#### 10.1 TOP–TPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root "$DATA_ROOT" --result_root "$RESULT_ROOT" --track_root "$TRACK_ROOT" --result_name1 "${GROUP}_cam_top_000_150" --result_name2 "${GROUP}_cam_tpv_000_150" --group_prefix "$GROUP" --mask_prefix "$MASK_PREFIX" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096
+```
+
+#### 10.2 TPV–FPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root "$DATA_ROOT" --result_root "$RESULT_ROOT" --track_root "$TRACK_ROOT" --result_name1 "${GROUP}_cam_tpv_000_150" --result_name2 "${GROUP}_fpv_000_150" --group_prefix "$GROUP" --mask_prefix "$MASK_PREFIX" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096
+```
+
+#### 10.3 Optional TOP–FPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root "$DATA_ROOT" --result_root "$RESULT_ROOT" --track_root "$TRACK_ROOT" --result_name1 "${GROUP}_cam_top_000_150" --result_name2 "${GROUP}_fpv_000_150" --group_prefix "$GROUP" --mask_prefix "$MASK_PREFIX" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096
+```
+
+Check outputs:
+
+```bash
+find "$RESULT_ROOT/$GROUP" -name "tracks_match_v2.npz" -exec ls -lh {} \;
+```
+---
+
+Il risultato dal comando di checking è:
+```bash
+-rw-r--r-- 1 root root 19M Jun 17 10:11 results/prin_ID_0_15_30/ID_0/ID_0_cam_top_000_150__ID_0_cam_tpv_000_150/tracks_match_v2.npz
+-rw-r--r-- 1 root root 93M Jun 17 10:19 results/prin_ID_0_15_30/ID_0/ID_0_cam_top_000_150__ID_0_fpv_000_150/tracks_match_v2.npz
+-rw-r--r-- 1 root root 89M Jun 17 10:15 results/prin_ID_0_15_30/ID_0/ID_0_cam_tpv_000_150__ID_0_fpv_000_150/tracks_match_v2.npz
+```
+
+### Passo 11: Run VisualSync offset estimation
+
+Riporto il testo del README riguardo il passo 11:
+
+---
+Use a constrained search range for cropped action windows:
+
+```text
+offset_range = 25
+```
+
+Large ranges can create false minima, especially with FPV.
+
+#### 11.1 TOP–TPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py \
+  --dataset_root "$DATA_ROOT" \
+  --result_root "$RESULT_ROOT" \
+  --video1_name "${GROUP}_cam_top_000_150" \
+  --video2_name "${GROUP}_cam_tpv_000_150" \
+  --offset_range 25 \
+  --moving_threshold 0.5 \
+  --pixel_threshold 4 \
+  --max_batch_size 4096 \
+  --max_N 30000 \
+  --use_v2 \
+  --use_vggt \
+  --disable_gt
+```
+
+#### 11.2 TPV–FPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py \
+  --dataset_root "$DATA_ROOT" \
+  --result_root "$RESULT_ROOT" \
+  --video1_name "${GROUP}_cam_tpv_000_150" \
+  --video2_name "${GROUP}_fpv_000_150" \
+  --offset_range 25 \
+  --moving_threshold 0.5 \
+  --pixel_threshold 4 \
+  --max_batch_size 4096 \
+  --max_N 30000 \
+  --use_v2 \
+  --use_vggt \
+  --disable_gt
+```
+
+#### 11.3 Optional TOP–FPV
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py \
+  --dataset_root "$DATA_ROOT" \
+  --result_root "$RESULT_ROOT" \
+  --video1_name "${GROUP}_cam_top_000_150" \
+  --video2_name "${GROUP}_fpv_000_150" \
+  --offset_range 25 \
+  --moving_threshold 0.5 \
+  --pixel_threshold 4 \
+  --max_batch_size 4096 \
+  --max_N 30000 \
+  --use_v2 \
+  --use_vggt \
+  --disable_gt
+```
+
+### Passo 12: Collect offsets and create merged video
+
+Riporto il testo del README riguardo il passo 12:
+
+---
+
+Use the collector script to summarize pairwise candidates, estimate global offsets, and create a merged video:
+
+```bash
+python src/collect_sync_results.py \
+  --dataset_root "$DATA_ROOT" \
+  --result_root "$RESULT_ROOT" \
+  --group_name "$GROUP" \
+  --fps "$FPS" \
+  --max_seconds $((END_SEC-START_SEC)) \
+  --panel_height 480 \
+  --ignore_pair "${GROUP}_cam_top_000_150__${GROUP}_fpv_000_150"
+```
+
+This creates:
+
+```text
+$RESULT_ROOT/pairwise_offsets.csv
+$RESULT_ROOT/global_offsets.csv
+$RESULT_ROOT/merged_videos/
+```
+
+Check:
+
+```bash
+cat "$RESULT_ROOT/pairwise_offsets.csv"
+cat "$RESULT_ROOT/global_offsets.csv"
+ls -lh "$RESULT_ROOT/merged_videos"
+```
+
+If the merged video appears sign-reversed, regenerate with:
+
+```bash
+python src/collect_sync_results.py \
+  --dataset_root "$DATA_ROOT" \
+  --result_root "$RESULT_ROOT" \
+  --group_name "$GROUP" \
+  --fps "$FPS" \
+  --max_seconds $((END_SEC-START_SEC)) \
+  --panel_height 480 \
+  --offset_sign -1 \
+  --out_video_dir "$RESULT_ROOT/merged_videos_flip" \
+  --ignore_pair "${GROUP}_cam_top_000_150__${GROUP}_fpv_000_150"
+```
 
 ---
 ---
 --- 
 ## Cose da implementare
 
-- Possibile script python per definire le variabili globali tutte con un comando unico (praticamente eseguire il passo 3 con un solo comando)
+- ~~Possibile script python per definire le variabili globali tutte con un comando unico (praticamente eseguire il passo 3 con un solo comando)~~
