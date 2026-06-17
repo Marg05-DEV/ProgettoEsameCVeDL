@@ -614,7 +614,32 @@ python src/collect_sync_results.py \
 
 ---
 ---
---- 
+
+## ESPERIMENTI
+
+### 4a esecuzione:
+**Obiettivo:**: Dopo l'esecuzione del terzo tentativo che è andato a buon fine. Ne eseguiamo un quarto per testare uno script che andiamo a creare che ci permette di eseguire tutti i 12 passi con un solo comando
+
+Ricordarsi sempre di avviare il venv prima dell'esecuzione dello script.
+
+Lo script è stato lanciato con le seguenti impostazioni
+```text
+GROUP = ID_0
+START_SEC = 30
+END_SEC = 45
+FPS = 10
+```
+
+**Note:** Abbiamo notato che il passo 6 (sempre esoso in termini di tempo) abbia fatto l'esecuzione in meno di un minuto. Dovuto al fatto che avevamo già fatto un esecuzione sull'ID_0? Abbiamo aggiunto una funzionalità per far partire l'esecuzione da un determinato passo (utile in caso di errore intermendio)
+
+
+### 5a esecuzione:
+**Obiettivo:** testare, con le stesse impostazioni, un gruppo diverso da ID_0 (esecuzioni)
+
+#### 6a esecuzione:
+**Obiettivo:** testare con impostazioni più impegnative per il modello (maggiore minutaggio e maggiori fps)
+
+
 ## Cose da implementare
 
 - ~~Possibile script python per definire le variabili globali tutte con un comando unico (praticamente eseguire il passo 3 con un solo comando)~~
