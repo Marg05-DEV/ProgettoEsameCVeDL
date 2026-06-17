@@ -621,7 +621,15 @@ python src/collect_sync_results.py \
 **Obiettivo:**: Dopo l'esecuzione del terzo tentativo che è andato a buon fine. Ne eseguiamo un quarto per testare uno script che andiamo a creare che ci permette di eseguire tutti i 12 passi con un solo comando
 
 Ricordarsi sempre di avviare il venv prima dell'esecuzione dello script.
+```bash
+source vissync/bin/activate
+```
 
+Il comando per lanciare, dalla cartella visualsync, lo script è:
+
+```bash
+python src/custom_scripts/exec_visualsync.py
+```
 Lo script è stato lanciato con le seguenti impostazioni
 ```text
 GROUP = ID_0
