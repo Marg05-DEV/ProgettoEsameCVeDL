@@ -78,7 +78,10 @@ $RAW_ROOT/
 └── ID_0/
     ├── TOP/
     ├── TPV/
-    └── FPV/
+    ├── FPV/
+    ├── TOP_synchronized.mp4 
+    ├── TPV_synchronized.mp4
+    └── FPV_synchronized.mp4
 ```
 
 and creates:
