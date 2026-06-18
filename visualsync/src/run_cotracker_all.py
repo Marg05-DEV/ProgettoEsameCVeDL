@@ -36,6 +36,7 @@ def main():
     parser.add_argument("--gpu", default="0")
     parser.add_argument("--mask_prefix", default="deva_improved")
     parser.add_argument("--skip_exist", action="store_true")
+    parser.add_argument("--max_query_per_batch", type=int, default=1000)
 
     # Static camera settings: TPV / TOP
     parser.add_argument("--static_interval", type=int, default=10)
@@ -137,6 +138,7 @@ def main():
             "--save_dir", str(out_dir),
             "--interval", str(interval),
             "--grid_step", str(grid_step),
+            "--max_query_per_batch", str(args.max_query_per_batch),
         ]
 
         print("[RUN]", " ".join(cmd))

@@ -640,13 +640,76 @@ FPS = 10
 
 **Note:** Abbiamo notato che il passo 6 (sempre esoso in termini di tempo) abbia fatto l'esecuzione in meno di un minuto. Dovuto al fatto che avevamo già fatto un esecuzione sull'ID_0? Abbiamo aggiunto una funzionalità per far partire l'esecuzione da un determinato passo (utile in caso di errore intermendio)
 
+```text
+==============================
+RIEPILOGO TEMPI
+==============================
+ID_0            | 3833.15 s = circa 63 minuti 
+# Però l'esecuzione è stata fatta ripartire dal passo 8. Il tempo di esecuzione si riferisce a partire da quel punto.
+```
+
 
 ### 5a esecuzione:
 **Obiettivo:** testare, con le stesse impostazioni, un gruppo diverso da ID_0 (esecuzioni)
 
-#### 6a esecuzione:
-**Obiettivo:** testare con impostazioni più impegnative per il modello (maggiore minutaggio e maggiori fps)
+**Risultati:** 
+Abbiamo lanciato lo script con le seguenti impostazioni
+```text
+GROUP = ID_1
+START_SEC = 30
+END_SEC = 45
+FPS = 10
+```
 
+```
+==============================
+RIEPILOGO TEMPI
+==============================
+ID_1            | 4422.97 s = circa 73 minuti
+```
+
+### 6a esecuzione:
+**Obiettivo:** testare con impostazioni più impegnative per il modello (maggiore minutaggio e maggiori fps). Nel paper veniva detto che DEVA e ... avevano difficoltà con frame rate bassi. Con questa esecuzione valutiamo le differenze 
+```text
+GROUP = ID_2
+START_SEC = 15
+END_SEC = 45
+FPS = 20
+```
+Questo comporta l'avere 30 secondi di video campionizzati a 20 frame al secondo, cioè avere 600 frame analizzati rispetto ai 150 delle esecuzioni precedente
+
+Al passo 8, l'esecuzione si è interrotta per un OutOfMemory. Abbiamo visto che nello script che viene eseguito nel passo 8 (precisamente `run_cotracker_v5.py` che però viene richiamato da `run_cotracker_all.py`) viene messa a disposizione la variabile `max_query_per_batch`. Per utilizzarlo abbiamo:
+- Modificato `run_cotracker_all.py` che si occupa di propagare il comando. Quindi abbiamo messo a disposizione la variabile modificando due blocchi in questo modo:
+  ```python
+  parser.add_argument("--gpu", default="0")
+  parser.add_argument("--mask_prefix", default="deva_improved")
+  parser.add_argument("--skip_exist", action="store_true")
+  parser.add_argument("--max_query_per_batch",type=int, default=1000)
+  ```
+    ```python
+  cmd = [
+          "python", "src/run_cotracker_v5.py",
+          "--video_dir", str(rgb_dir),
+          "--mask_dir", str(mask_dir),
+          "--save_dir", str(out_dir),
+          "--interval", str(interval),
+          "--grid_step", str(grid_step),
+          "--max_query_per_batch", str(args.max_query_per_batch),
+        ]
+  ```
+
+- Cambiato il comando che lanciamo dallo script per lanciare il processo (`custom_scripts/exec_visualsync.py`):
+  ```python
+  ("Passo 8: Run CoTracker", [
+      "rm -rf \"$TRACK_ROOT\"",
+      
+      "mkdir -p \"$TRACK_ROOT\"",
+
+      "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only static --static_interval 3 --static_grid_step 5 --max_query_per_batch 300 --skip_exist",
+
+      "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --max_query_per_batch 300 --skip_exist"
+  ]),
+  ```
 
 ## Cose da implementare
 
