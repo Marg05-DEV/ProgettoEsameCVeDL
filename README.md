@@ -334,7 +334,7 @@ python src/run_cotracker_all.py --dataset_root "$DATA_ROOT" --track_root "$TRACK
 If FPV becomes too sparse, rerun only FPV with a denser setting:
 
 ```bash
-python src/run_cotracker_all.py --dataset_root "$DATA_ROOT" --track_root "$TRACK_ROOT" --gpu 0 --mask_prefix "$MASK_PREFIX"--only fpv --dynamic_interval 5 --dynamic_grid_step 8
+python src/run_cotracker_all.py --dataset_root "$DATA_ROOT" --track_root "$TRACK_ROOT" --gpu 0 --mask_prefix "$MASK_PREFIX" --only fpv --dynamic_interval 5 --dynamic_grid_step 8
 ```
 
 Check:
