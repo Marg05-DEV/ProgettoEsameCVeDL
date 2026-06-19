@@ -714,6 +714,75 @@ Al passo 8, l'esecuzione si è interrotta per un OutOfMemory. Abbiamo visto che 
   ]),
   ```
 
+## SCRIPTS
+
+Questa sezione serve per spiegare l'utilità ed il funzionamento degli script aggiunti al modello. Perlopiù si tratta di script di utilità. Prima di tutto è importante dire che è stata creata una sessione tmux per il testing e l'esecuzione di questi script cos' che siano indipendenti dall'esecuzione degli esperimenti sul modello descritti nella sezione precedente. I comandi per tmux sono:
+- Per creare la sessione:
+  ```bash
+  tmux new -s script_tests
+  ```
+- Per riprendere la sessione:
+  ```bash
+  tmux attach -t script_tests
+  ```
+
+Inoltre controllare che il venv sia attivo altrimenti lanciare il comando:
+```bash
+source vissync/bin/activate
+```
+
+**NB.** Tutti gli esempi di comandi mostrati successivamente sono pensati per essere lanciati a partire dalla cartella `app/Progetto/visualsync`. Fare il comando `cd <path>` per andare nella cartella desiderata
+
+--- 
+### `set_global_variables.sh`
+Questo script in bash serve per il set delle variabili globali
+Va eseguito con il comando:
+```bash
+source scripts/custom_scripts/set_globals_variables.sh ID_<gruppo> <start_sec> <end_sec> <fps>
+```
+Alcuni degli script che presenteremo successivamente necessiteranno di questo comando prima o lo includono al loro interno (verrà specificato nei rispettivi comandi)
+
+---
+### `exec_visualsync.py`
+Questo script in python si occupa di eseguire tutti i comandi della pipline del modello. Inizia croppando il dataset e preparandolo all'uso fino a calcolare gli offset globali e generare il video sincronizzato. 
+Viene lanciato con il comando:
+```bash
+python src/custom_scripts/exec_visualsync.py
+```
+
+Appena eseguito comparirà a schermo un prompt che chiederà l'inserimento dei dati di input per proseguire con l'esecuzione:
+- inserimento dell'id d'inizio e di fine (infatti lo script itera il range di id così da eseguire la pipeline su ogni gruppo di video senza richiedere le impostazioni di avvio)
+  ```text
+  ID id partenza: _
+  ID di arrivo: _
+  ```
+- inserimento dei dati con cui settare le variabili globali utili per l'esecuzione del modello:
+  ```text
+  Start sec: _
+  End sec: _
+  FPS: _
+  ```
+- inserimento del passo da cui proseguire con l'esecuzione
+  ```text
+  Inserisci il numero del passo da cui ripartire (premi invio per iniziare dall'inizio): _
+  ```
+  infatti lo script implementa anche la possibilità di ripartire con l'esecuzione da un passo dove ci si era bloccati (ad esempio per un errore). Bisogna stare attenti a riinserire i dati uguali a quelli dell'esecuzione su cui ci si era bloccati.
+
+---
+### `ground_truth_extractor.py`
+Questo script serve per elaborare le durate dei video del dataset per recuperare i valori di offset pairwise e globali che possono fungere da ground_truth del modello e quindi possono aiutare a valutare l'errore e quindi la bontà della risposta del modello. 
+
+Questo script mette a disposizione delle funzioni che poi verranno utilizzate dal prossimo script che servirà per il calcolo delle metriche. Inoltre è comunque possibile eseguirlo per stampare sul terminale i dati (durate, offsets, ...) di alcuni gruppi di video. Si può eseguire con il comando come nel seguente esempio:
+```bash
+python src/custom_script/ground_truth_extractor.py --root "$RAW_ROOT" --ids ID_0 ID_1
+```
+Per eseguire questo comando con l'iniettamento della variabile globale bisogerà prima eseguire `set_global_variables.sh` (si può tralasciare anche qualsiasi parametro. L'importante e unico utilizzato qui è RAW_ROOT)
+
+---
+### `estimate_methrics.py`
+
+In sviluppo ...
+
 ## Cose da implementare
 
 - ~~Possibile script python per definire le variabili globali tutte con un comando unico (praticamente eseguire il passo 3 con un solo comando)~~
