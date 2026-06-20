@@ -724,6 +724,7 @@ Abbiamo fatto diversi tentativi per fare in modo che non avvenisse l'OOM ma cont
   export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
   ```
 Dei miglioramenti ci sono stati. infatti il comando per le cam statiche va a buon fine (prima era lui ad avere OOM). L'errore adesso occorre a causa del comando per la cam dinamica.
+Alla fine è stato fatto un tentativo di 15 secondi a 15 fps che è andato a buon fineI
 
 ## SCRIPTS
 
@@ -782,6 +783,7 @@ Appena eseguito comparirà a schermo un prompt che chiederà l'inserimento dei d
 ---
 ### `ground_truth_extractor.py`
 Questo script serve per elaborare le durate dei video del dataset per recuperare i valori di offset pairwise e globali che possono fungere da ground_truth del modello e quindi possono aiutare a valutare l'errore e quindi la bontà della risposta del modello. 
+Inizialmente la prima versione sfruttava le sole durate dei video originali e quelli sincronizzati e faceva la differenza ma il risultato non era corretto. Perciò nella versione attuale viene preso il primissimo frame del video sincronizzato e si confronta con i frame del rispettivo video orignale per vedere a che minutaggio compare così da calcolare gli offset.
 
 Questo script mette a disposizione delle funzioni che poi verranno utilizzate dal prossimo script che servirà per il calcolo delle metriche. Inoltre è comunque possibile eseguirlo per stampare sul terminale i dati (durate, offsets, ...) di alcuni gruppi di video. Si può eseguire con il comando come nel seguente esempio:
 ```bash
@@ -799,6 +801,16 @@ Da la possiblità di lanciare l'esecuzione sia direttamente da terminale passand
 python src/custom_scripts/estimate_metrics.py
 ```
 Ovviamente bisogna anche qui impostare le variabili globali prima dell'esecuzione perchè il modulo necessita dei path dove andare a prendere i dati
+
+---
+### `video_inspector.py`
+
+Questo script serve per ispezionare i video originali del dataset e confrontare i frame dei tre video (TPV, TOP e FPV). Lo script è stato utilizzato per vedere se il ground truth estratto dallo script `ground_truth_extractor.py` era corretto. Infatti, accertata l'errore della prima versione dello script per il calcolo del gt, questo è stato riscritto utilizzando una tecnica diversa. Per lanciare lo script per l'ispezione dei video si lancia il comando:
+
+```bash
+python src/custom_scripts/video_inspector.py
+```
+Ovviamente, anche questo script deve essere preceduto da un setting delle variabile globali.
 
 
 
