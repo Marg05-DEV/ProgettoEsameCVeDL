@@ -687,6 +687,7 @@ Al passo 8, l'esecuzione si è interrotta per un OutOfMemory. Abbiamo visto che 
   parser.add_argument("--gpu", default="0")
   parser.add_argument("--mask_prefix", default="deva_improved")
   parser.add_argument("--skip_exist", action="store_true")
+
   parser.add_argument("--max_query_per_batch",type=int, default=1000)
   ```
     ```python
@@ -697,6 +698,7 @@ Al passo 8, l'esecuzione si è interrotta per un OutOfMemory. Abbiamo visto che 
           "--save_dir", str(out_dir),
           "--interval", str(interval),
           "--grid_step", str(grid_step),
+
           "--max_query_per_batch", str(args.max_query_per_batch),
         ]
   ```
@@ -708,11 +710,20 @@ Al passo 8, l'esecuzione si è interrotta per un OutOfMemory. Abbiamo visto che 
       
       "mkdir -p \"$TRACK_ROOT\"",
 
-      "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only static --static_interval 3 --static_grid_step 5 --max_query_per_batch 300 --skip_exist",
+      "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only static --static_interval 3 --static_grid_step 5 --max_query_per_batch 200 --skip_exist",
 
-      "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --max_query_per_batch 300 --skip_exist"
+      "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --max_query_per_batch 120 --skip_exist"
   ]),
   ```
+
+Abbiamo fatto diversi tentativi per fare in modo che non avvenisse l'OOM ma continua ad occorrere
+- Da 300 di batch size siamo passati a 200, poi 150 e anche 120 per poi stabilizzarci a 200 per le cam statiche e 120 per quelle dinamiche;
+- Abbiamo aumentato i valori di `dynamic_interval` (da 8 a 12) e `dynamic_grid_step` (da 10 a 15)
+- Nello script del set delle variabili globali è stata aggiunta la voce per evitare la fragmentazione della memoria
+  ```bash
+  export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+  ```
+Dei miglioramenti ci sono stati. infatti il comando per le cam statiche va a buon fine (prima era lui ad avere OOM). L'errore adesso occorre a causa del comando per la cam dinamica.
 
 ## SCRIPTS
 
