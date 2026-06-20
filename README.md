@@ -774,14 +774,23 @@ Questo script serve per elaborare le durate dei video del dataset per recuperare
 
 Questo script mette a disposizione delle funzioni che poi verranno utilizzate dal prossimo script che servirà per il calcolo delle metriche. Inoltre è comunque possibile eseguirlo per stampare sul terminale i dati (durate, offsets, ...) di alcuni gruppi di video. Si può eseguire con il comando come nel seguente esempio:
 ```bash
-python src/custom_script/ground_truth_extractor.py --root "$RAW_ROOT" --ids ID_0 ID_1
+python src/custom_scripts/ground_truth_extractor.py --root "$RAW_ROOT" --ids ID_0 ID_1
 ```
 Per eseguire questo comando con l'iniettamento della variabile globale bisogerà prima eseguire `set_global_variables.sh` (si può tralasciare anche qualsiasi parametro. L'importante e unico utilizzato qui è RAW_ROOT)
 
 ---
-### `estimate_methrics.py`
+### `estimate_metrics.py`
 
-In sviluppo ...
+Questo script serve per il calcolo delle metriche di valutazione su un gruppo di video. Quello che fa è confrontare i valori di gt ricavati dal modulo `ground_truth_extractor.py`
+e quelli in output del modello e calcolare errore medio, mediano e AUC.
+Da la possiblità di lanciare l'esecuzione sia direttamente da terminale passando l'id di cui fare la stima e gli fps con il comando:
+```bash
+python src/custom_scripts/estimate_metrics.py
+```
+Ovviamente bisogna anche qui impostare le variabili globali prima dell'esecuzione perchè il modulo necessita dei path dove andare a prendere i dati
+
+
+
 
 ## Cose da implementare
 

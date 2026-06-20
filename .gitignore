@@ -5,6 +5,7 @@ visualsync/vggt_output/
 visualsync/tracks/
 visualsync/results/
 visualsync/src/__pycache__/
+visualsync/src/custom_scripts/__pycache__/
 *.zip
 *.tar.gz
 *.gz
