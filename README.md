@@ -724,7 +724,88 @@ Abbiamo fatto diversi tentativi per fare in modo che non avvenisse l'OOM ma cont
   export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
   ```
 Dei miglioramenti ci sono stati. infatti il comando per le cam statiche va a buon fine (prima era lui ad avere OOM). L'errore adesso occorre a causa del comando per la cam dinamica.
-Alla fine è stato fatto un tentativo di 15 secondi a 15 fps che è andato a buon fineI
+Alla fine è stato fatto un tentativo di 15 secondi a 15 fps che è andato a buon fine.
+
+### 7a esecuzione:
+Nuovo tentativo con queste impostazioni:
+```text
+GROUP = ID_3
+START_SEC = 30
+END_SEC = 40
+FPS = 20
+```
+Abbiamo divuto stoppare l'esecuzione al punto 10. Questo perchè abbiamo capito che lanciare i 2 comandi del passo 12 (uno per il calcolo degli offset globali normali e uno per quelli a segno invertito), il secondo sovrascriveva i csv del primo (i video rimanevano in due cartelle separate). I csv ci servono per calcolare le metriche andando a confrontare i dati del csv con quelli del ground truth (usati scripts descritti successivamente). Perciò il tempo di esecuzione è sballato (abbiamo solo quello dal passo 10 al passo 12). Però possiamo riportare le metriche:
+
+```bash
+=========================================================================
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_3 (@ 20.0 FPS)
+=========================================================================
+ [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+     Vista TOP  | GT: -1.30s (-26.0 f) | Pred: -21.0 f | Errore: 250.00 ms
+     Vista FPV  | GT: +0.69s (+13.7 f) | Pred: -25.0 f | Errore: 1936.77 ms
+
+ [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+     Errore Medio (Mean Error):      1093.38 ms
+     Errore Mediano (Median Error):   1093.38 ms
+     Accuratezza @ 100ms (A@100ms):   0.0%
+     Accuratezza @ 500ms (A@500ms):   50.0%
+     Area Sotto la Curva (AUC):       0.4535
+=========================================================================
+```
+
+### 8a esecuzione:
+Nell'ottava esecuzione abbiamo testato anche il fatto che lo script per l'esecuzioen è in grado di iterare più gruppi di video nella stessa esecuzione. Di fatti abbiamo applicato il modello su `ID_4` e `ID_5` con le stesse seguenti impostazioni:
+```
+START_SEC = 30
+END_SEC = 40
+FPS = 25
+```
+Lo script per l'esecuzione stampa entrambi i tempi di esecuzione in una tabella:
+```
+==============================
+RIEPILOGO TEMPI
+==============================
+ID_4            | 6436.43 s
+ID_5            | 8051.52 s
+```
+
+Commentiamo separatamente la valutazione dei due gruppi:
+- `ID_4`: Prima di riportare la valutazione c'è da dire che solo per questo id, il gt calcolato dallo script non è corretto (di fatti con tale offset le viste non sono sincronizzate) e quindi le metriche non sono veritiere. Come verrà descritto successivamente nella sezioen del rispettivo script, sono stati fatti aggiornamenti che hanno visto un miglioramento ma comunque un errore persiste. Lascio comunque le valutazioni con la possibilità di sostituirle a problema risolto:
+  ```
+  =========================================================================
+      REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_4 (@ 25.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+      Vista TOP  | GT: +5.73s (+143.3 f) | Pred: -24.0 f | Errore: 6693.33 ms
+      Vista FPV  | GT: +8.02s (+200.5 f) | Pred: +17.0 f | Errore: 7341.73 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+      Errore Medio (Mean Error):      7017.53 ms
+      Errore Mediano (Median Error):   7017.53 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.0000
+  =========================================================================
+  ```
+
+- `ID_5`: Qui l'errore nel calcolo del gt sembra non esserci. Perciò le metriche di valutazioen sono corrette
+  ```
+  =========================================================================
+      REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_5 (@ 25.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+      Vista TOP  | GT: -0.87s (-21.7 f) | Pred: +13.0 f | Errore: 1386.67 ms
+      Vista FPV  | GT: +1.42s (+35.5 f) | Pred: +0.0 f | Errore: 1419.67 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+      Errore Medio (Mean Error):      1403.17 ms
+      Errore Mediano (Median Error):   1403.17 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.2985
+  =========================================================================
+  ```
+
 
 ## SCRIPTS
 
@@ -783,7 +864,10 @@ Appena eseguito comparirà a schermo un prompt che chiederà l'inserimento dei d
 ---
 ### `ground_truth_extractor.py`
 Questo script serve per elaborare le durate dei video del dataset per recuperare i valori di offset pairwise e globali che possono fungere da ground_truth del modello e quindi possono aiutare a valutare l'errore e quindi la bontà della risposta del modello. 
-Inizialmente la prima versione sfruttava le sole durate dei video originali e quelli sincronizzati e faceva la differenza ma il risultato non era corretto. Perciò nella versione attuale viene preso il primissimo frame del video sincronizzato e si confronta con i frame del rispettivo video orignale per vedere a che minutaggio compare così da calcolare gli offset.
+
+`v2`: Inizialmente la prima versione sfruttava le sole durate dei video originali e quelli sincronizzati e faceva la differenza ma il risultato non era corretto. Perciò nella versione attuale viene preso il primissimo frame del video sincronizzato e si confronta con i frame del rispettivo video orignale per vedere a che minutaggio compare così da calcolare gli offset.
+
+`v3`: Nella terza versione si è cercato di risolvere il problema che ha afflitto il calcolo del gt per l'`ID_4` (come descritto nella rispettiva esecuzione). Si è pensato che la staticità dei video nei primi secondi poteva far risultare uguali tanti frame e quindi indurre l'errore nel calcolo del gt. Quindi si è preso come frame da confrontare quello di un istante di tempo più avanti (dove c'è più probabilità che ci sia movimento). Inoltre si è tolta la tolleranza dell'errore medio visto che si confrontano gli stessi video tagliati, l'errore tra lo stesso frame dovrebbe essere 0. L'errore per l'ID_4 sembra essersi ridotto ma persiste ugualmente. Si prevedono altre migliorie per eliminare l'errore
 
 Questo script mette a disposizione delle funzioni che poi verranno utilizzate dal prossimo script che servirà per il calcolo delle metriche. Inoltre è comunque possibile eseguirlo per stampare sul terminale i dati (durate, offsets, ...) di alcuni gruppi di video. Si può eseguire con il comando come nel seguente esempio:
 ```bash
@@ -812,6 +896,13 @@ python src/custom_scripts/video_inspector.py
 ```
 Ovviamente, anche questo script deve essere preceduto da un setting delle variabile globali.
 
+---
+### `run_full_validation.py`
+Questo script unisce  `ground_truth_extractor.py`, `video_inspector.py` e `estimate_metrics.py` sempre previo setting delle variabili globali. Infatti serve per calcolare il gt di un ID per poi passare i valori al video inspector per essere sicuri che il gt sia corretto (è stato utile per valutare l'errore dell'ID_4) e poi passarli al calcolo delle metriche dove sono utili per calcolare l'errore.
+Possiamo lanciarlo con il comando:
+```bash
+python src/custom_scripts/run_full_validation.py
+```
 
 
 

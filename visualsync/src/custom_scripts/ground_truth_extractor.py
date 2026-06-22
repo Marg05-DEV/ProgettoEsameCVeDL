@@ -42,33 +42,35 @@ def find_synchronized_video(id_dir: Path, view: str) -> Optional[Path]:
 
 def find_exact_start_cut_seconds(orig_path: Path, sync_path: Path, max_search_seconds: float = 60.0) -> float:
     """
-    METODO 1: TEMPLATE MATCHING TEMPORALE (Risoluzione-Resiliente)
-    Trova l'esatto secondo di taglio iniziale confrontando le immagini pixel per pixel.
-    Forza la corrispondenza delle dimensioni dei frame per evitare errori di formato.
+    METODO 1 - VERSIONE SENZA COMPROMESSI: MINIMO GLOBALE SULLA ROI CENTRAL
+    Rimuove completamente l'early stopping. Scansiona l'intera timeline per trovare
+    il punto di minimo assoluto della differenza, risolvendo i match ciclici/ripetitivi.
     """
-    # 1. Estrazione del primo frame utile dal video sincronizzato di riferimento
+    anchor_seconds = 10.0
+    
     cap_sync = cv2.VideoCapture(str(sync_path))
+    sync_fps = cap_sync.get(cv2.CAP_PROP_FPS) or 30.0
+    anchor_frame_sync = int(anchor_seconds * sync_fps)
+    
+    cap_sync.set(cv2.CAP_PROP_POS_FRAMES, anchor_frame_sync)
     ret_s, frame_sync = cap_sync.read()
     cap_sync.release()
     
     if not ret_s:
-        print(f"  [!] Impossibile leggere il primo frame di: {sync_path.name}", file=sys.stderr)
         return 0.0
         
-    # Conversione in grigio e downscaling del target per velocizzare
     gray_sync = cv2.cvtColor(frame_sync, cv2.COLOR_BGR2GRAY)
     gray_sync = cv2.resize(gray_sync, (0, 0), fx=0.5, fy=0.5)
+    h, w = gray_sync.shape[:2]
     
-    # Memorizziamo l'esatta forma geometrica (Altezza, Larghezza) che ci serve per il confronto
-    target_height, target_width = gray_sync.shape[:2]
+    # ROI Centrale (manteniamo il focus sull'area dell'azione)
+    start_y, end_y = int(h * 0.2), int(h * 0.8)
+    start_x, end_x = int(w * 0.2), int(w * 0.8)
+    roi_sync = gray_sync[start_y:end_y, start_x:end_x]
     
-    # 2. Scansione del video originale alla ricerca del frame identico
     cap_orig = cv2.VideoCapture(str(orig_path))
-    orig_fps = cap_orig.get(cv2.CAP_PROP_FPS)
-    if not orig_fps or orig_fps <= 0:
-        orig_fps = 30.0
-        
-    max_search_frames = int(max_search_seconds * orig_fps)
+    orig_fps = cap_orig.get(cv2.CAP_PROP_FPS) or 30.0
+    max_search_frames = int((max_search_seconds + anchor_seconds) * orig_fps)
     
     best_match_frame = 0
     min_difference = float('inf')
@@ -80,29 +82,26 @@ def find_exact_start_cut_seconds(orig_path: Path, sync_path: Path, max_search_se
             break
             
         gray_orig = cv2.cvtColor(frame_orig, cv2.COLOR_BGR2GRAY)
+        gray_orig_resized = cv2.resize(gray_orig, (w, h))
+        roi_orig = gray_orig_resized[start_y:end_y, start_x:end_x]
         
-        # SOLUZIONE: Invece di applicare fx/fy liberi, forziamo il frame originale ad assumere
-        # le identiche dimensioni (pixel per pixel) del frame di riferimento sincronizzato.
-        gray_orig_resized = cv2.resize(gray_orig, (target_width, target_height))
-        
-        # Adesso le dimensioni sono identiche al 100% e absdiff non fallirà mai
-        diff = cv2.absdiff(gray_sync, gray_orig_resized)
+        diff = cv2.absdiff(roi_sync, roi_orig)
         mean_diff = np.mean(diff)
         
+        # CRUCIALE: Memorizziamo il record ma NON interrompiamo il ciclo.
+        # Vogliamo trovare l'istante in cui la differenza tocca il fondo assoluto del grafico.
         if mean_diff < min_difference:
             min_difference = mean_diff
             best_match_frame = count
-            
-        if mean_diff < 1.5:
-            best_match_frame = count
-            break
             
         count += 1
         
     cap_orig.release()
     
-    cut_seconds = -(best_match_frame / orig_fps)
-    return cut_seconds
+    anchor_seconds_in_orig = best_match_frame / orig_fps
+    real_start_seconds_in_orig = anchor_seconds_in_orig - anchor_seconds
+    
+    return -real_start_seconds_in_orig
 
 
 def get_durations(root_path: str | Path, ids: list[str]) -> dict[str, dict[str, dict[str, float]]]:
