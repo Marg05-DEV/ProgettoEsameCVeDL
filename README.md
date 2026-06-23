@@ -806,6 +806,42 @@ Commentiamo separatamente la valutazione dei due gruppi:
   =========================================================================
   ```
 
+### 9a esecuzione:
+Abbiamo tentato l'esecuzione a 30 fps con le seguenti impostazioni:
+```
+GROUP = ID_6
+START_SEC = 30
+END_SEC = 40
+FPS = 30
+```
+Abbiamo avuto un problema di OOM. Quindi abbiamo ridotto l'intervallo a 9 secondi (30-39) ma il risultato è stato un ulteriore OOM
+Riducendo nuovamente l'intervallo a 30-38 = 8s il problema non è occorso e l'esecuzione si è conclusa con successo:
+
+```
+==============================
+RIEPILOGO TEMPI
+==============================
+ID_6            | 8842.28 s
+```
+
+Abbiamo fatto anche la valutazione delle metriche:
+```
+=========================================================================
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_6 (@ 30.0 FPS)
+=========================================================================
+ [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+     Vista TOP  | GT: -0.90s (-27.0 f) | Pred: +25.0 f | Errore: 1733.33 ms
+     Vista FPV  | GT: +0.59s (+17.6 f) | Pred: -25.0 f | Errore: 1418.90 ms
+
+ [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+     Errore Medio (Mean Error):      1576.12 ms
+     Errore Mediano (Median Error):   1576.12 ms
+     Accuratezza @ 100ms (A@100ms):   0.0%
+     Accuratezza @ 500ms (A@500ms):   0.0%
+     Area Sotto la Curva (AUC):       0.2120
+=========================================================================
+```
+
 
 ## SCRIPTS
 
@@ -909,3 +945,5 @@ python src/custom_scripts/run_full_validation.py
 ## Cose da implementare
 
 - ~~Possibile script python per definire le variabili globali tutte con un comando unico (praticamente eseguire il passo 3 con un solo comando)~~
+
+- Capire perchè, durante il crop del dataset, la vista FPV viene fatto il source non a 30 fps ma a 29,97
