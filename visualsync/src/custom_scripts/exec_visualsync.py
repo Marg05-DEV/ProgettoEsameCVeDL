@@ -3,6 +3,9 @@ import os
 import sys
 import time
 import re
+from codecarbon import EmissionsTracker
+
+
 
 # Costanti
 BASE_PATH = "/app/Progetto/visualsync"
@@ -71,9 +74,9 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
             f"CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --track_root \"$TRACK_ROOT\" --result_name1 \"{top_name}\" --result_name2 \"{fpv_name}\" --group_prefix \"$GROUP\" --mask_prefix \"$MASK_PREFIX\" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096"
         ]),
         ("Passo 11: VisualSync Offset Estimation", [
-            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{tpv_name}\" --offset_range 25 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
-            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{tpv_name}\" --video2_name \"{fpv_name}\" --offset_range 25 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
-            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{fpv_name}\" --offset_range 25 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt"
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{tpv_name}\" --offset_range 100 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{tpv_name}\" --video2_name \"{fpv_name}\" --offset_range 100 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{fpv_name}\" --offset_range 100 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt"
         ]),
         ("Passo 12: Collect offset & create merged video", [
             f"python src/collect_sync_results.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --group_name \"$GROUP\" --fps \"$FPS\" --max_seconds $((END_SEC-START_SEC)) --panel_height 480 --ignore_pair \"{top_name}__{fpv_name}\""
@@ -109,10 +112,46 @@ if __name__ == "__main__":
 
     results = []
     for i in range(start_id, end_id + 1):
-        print(f"\n{'='*20}\nAVVIO PIPELINE PER ID_{i}\n{'='*20}")
+        print(f"\n{'='*40}\nAVVIO PIPELINE + EMISSIONI PER ID_{i}\n{'='*40}")
+        
+        # Configurazione CodeCarbon puramente a schermo (senza CSV)
+        tracker = EmissionsTracker(
+            project_name=f"ID_{i}_Execution",
+            save_to_file=False,
+            log_level="error"
+        )
+        
+        tracker.start()
         t0 = time.time()
+        
+        # Esecuzione della pipeline con i passi e i commenti originali intatti
         success = run_pipeline(i, start_sec, end_sec, fps, start_step)
-        results.append((f"ID_{i}", time.time() - t0 if success else "FALLITO"))
+        
+        elapsed_time = time.time() - t0
+        emissions = tracker.stop()
+        
+        # Recupero dell'energia consumata in tempo reale dalla RAM
+        energy_kwh = tracker._total_energy.kWh if hasattr(tracker, '_total_energy') else 0.0
+        
+        if success:
+            status_str = f"{elapsed_time:.2f} s"
+            print(f"\n[+] ID_{i} COMPLETATO CON SUCCESSO:")
+            print(f"    -> Tempo di esecuzione: {status_str}")
+            print(f"    -> Energia Consumata:   {energy_kwh:.4f} kWh")
+            print(f"    -> Emissioni Stimate:   {emissions:.6f} kg CO2")
+        else:
+            status_str = "FALLITO"
+            print(f"\n[-] ID_{i} FALLITO durante l'esecuzione.")
+            
+        results.append((f"ID_{i}", status_str, energy_kwh, emissions))
 
-    print("\n" + "="*30 + "\nRIEPILOGO TEMPI\n" + "="*30)
-    for g, t in results: print(f"{g:<15} | {t if isinstance(t, str) else f'{t:.2f} s'}")
+    # Riepilogo strutturato finale stampato a schermo
+    print("\n" + "="*55 + "\nRIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)\n" + "="*55)
+    print(f"{'ESPERIMENTO':<15} | {'TEMPO':<12} | {'ENERGIA (kWh)':<15} | {'EMISSIONI (kg CO2)'}")
+    print("-"*55)
+    for g, t, eng, ems in results:
+        if t == "FALLITO":
+            print(f"{g:<15} | {t:<12} | {'-':<15} | -")
+        else:
+            print(f"{g:<15} | {t:<12} | {eng:<15.4f} | {ems:.6f}")
+    print("="*55 + "\n")

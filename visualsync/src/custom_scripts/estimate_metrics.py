@@ -30,6 +30,24 @@ except ImportError:
     sys.exit(1)
 
 
+def sanitize_float_value(val: Any) -> float:
+    """
+    Sanitizza un valore di input convertendolo in float.
+    Se il valore è None, NaN, stringa vuota o non numerico, restituisce 0.0.
+    """
+    if val is None:
+        return 0.0
+    try:
+        if isinstance(val, (float, np.floating)) and (np.isnan(val) or pd.isna(val)):
+            return 0.0
+        if isinstance(val, str):
+            val_clean = val.strip().lower()
+            if val_clean in ["nan", "none", "", "null"]:
+                return 0.0
+        return float(val)
+    except (ValueError, TypeError):
+        return 0.0
+
 # --------------------------------------------------------------------------- #
 # CORE API: Caricamento Output Modello e Calcolo
 # --------------------------------------------------------------------------- #
@@ -60,6 +78,8 @@ def load_model_predictions(result_root: str | Path) -> Optional[dict[str, float]
             video_name = str(row['video']).lower().strip()
             offset_val = float(row['global_offset_frames'])
             
+            offset_val = sanitize_float_value(row['global_offset_frames'])
+            
             # Mappatura fuzzy basata sulle stringhe del CSV reale
             if "top" in video_name:
                 preds_pulite["TOP"] = offset_val
@@ -80,26 +100,41 @@ def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str,
     Esegue il core logico del calcolo confrontando il Ground Truth (in secondi)
     convertito in frame con le predizioni del modello (in frame).
     """
-    # 1. Recupero Ground Truth
+    # 1. Recupero Ground Truth originale
     gt_dataset = get_all_synchronization_data(raw_root, [id_name])
     if id_name not in gt_dataset:
         return {"success": False, "msg": f"Impossibile calcolare il GT per {id_name}. Verifica i video in {raw_root}."}
         
-    # 2. Caricamento Predizioni del modello
-    preds_frame = load_model_predictions(result_root)
-    if preds_frame is None:
+    # 2. Caricamento Predizioni grezze dal modello
+    preds_frame_raw = load_model_predictions(result_root)
+    if preds_frame_raw is None:
         return {"success": False, "msg": f"File 'global_offsets.csv' non trovato o malformato in {result_root}."}
         
-    gt_sec = gt_dataset[id_name]["global_offsets_secondi"]
+    # === SANITIZZAZIONE ESTRATTIVA (SENZA CAMBIARE I SEGNI ORIGINALI) ===
+    # Forziamo a 0.0 qualsiasi valore mancante o NaN per evitare la propagazione nei calcoli
+    preds_pulite = {}
+    for view in ["TOP", "FPV", "TPV"]:
+        raw_pred = preds_frame_raw.get(view, 0.0)
+        preds_pulite[view] = sanitize_float_value(raw_pred)
+        
+    gt_sec_raw = gt_dataset[id_name].get("global_offsets_secondi", {})
+    gt_pulito = {}
+    for view in ["TOP", "FPV", "TPV"]:
+        raw_gt = gt_sec_raw.get(view, 0.0)
+        gt_pulito[view] = sanitize_float_value(raw_gt)
+
+    # Riassegniamo alle variabili usate dalla tua formula originale
+    gt_sec = gt_pulito
+    preds_frame = preds_pulite
+
     id_errors_ms = {}
     all_errors_ms = []
     
     # Valutiamo le viste non-pivot (TOP e FPV) rispetto alla vista perno TPV
     for view in ["TOP", "FPV"]:
-        if view not in gt_sec or view not in preds_frame:
-            continue
+        # Rimosso il controllo rigido "if view not in..." poiché ora la presenza a 0.0 è garantita
             
-        # FORMULA MATEMATICA DI CONVERSIONE E CONFRONTO
+        # FORMULA MATEMATICA ORIGINALE DI CONVERSIONE E CONFRONTO (Segni invariati)
         gt_frame_val = gt_sec[view] * fps
         pred_frame_val = preds_frame[view]
         
