@@ -842,6 +842,31 @@ Abbiamo fatto anche la valutazione delle metriche:
 =========================================================================
 ```
 
+### 10a esecuzione:
+**Obiettivo**: Andare a testare il modello su un gruppo di video sintetico, cioè generato a partire da video sincronizzati (del ID_0) a cui viene  applicato un offset ad una vista (TOP + 90s). Questo viene fatto per capire la convenzione dei segni degli offset utilizzata dal modello. Infatti, nella esecuzioen precedente avevamo delle discrepanze tra il video ottenuto (che era abbastanza sincronizzato) con gli offset predetti e il gt. Infatti se gli offset predetti fossero stati di segno opposto o il gt fosse stato di segno opposto allora le metriche calcolate sarebbero state molto buone e conincidenti con quello che si vedeva dal video risultante.
+
+Abbiamo lanciato quindi il modello con le seguenti impostazioni:
+```
+GROUP = ID_20
+START_SEC = 30
+END_SEC = 38
+FPS = 30
+```
+
+Però occoravamo in un problema durante il passo 10 che diceva che non era presente il file:
+```
+/app/Progetto/visualsync/tracks/prin_ID_20_30_38/ID_20_fpv_000_240/tracks.pkl
+```
+
+Questo problema era dovuto al fatto che al passo 8, CoTracker non individuava nessun frame con cui tracciare mani e braccia (tags utilizzati) e quindi non creava il file tracks.pkl (e di conseguenza neanche tracks_rgb_aligned.mp4). Andando a rivedere l'intervallo di video (30 - 38), in effetti non compariva nessun braccio o nessuna mano. Questo problema avviene solamente con la camera egohuman posta sulla testa dell'agente del video. Finchè questo non allunga mani o braccia queste non compaiono nel campo visivo della camera (a differenza di TOP e TPV che vedono l'agente da "fuori"), Quindi abbiamo rilanciato l'esecuzione con impostazioni dove nell'intervallo di 8 secondi compaiono braccia e mani
+```
+GROUP = ID_20
+START_SEC = 35
+END_SEC = 43
+FPS = 30
+```
+
+Questo è un problema da tenere d'occhio quando lanciamo il modello in un intervallo ridotto come questo di 8 secondi. Di fatti non è possibile neppure aumentare l'intervallo perchè, campionando a 30fps, con un intervallo maggiore si avrebbero troppi frame che porterebbero ad un OOM. Infatti con l'esecuzione precedente abbiamo praticamente accertato che sopra i 250 frame, il modello va in OOM
 
 ## SCRIPTS
 
