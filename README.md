@@ -930,6 +930,8 @@ Questo script serve per elaborare le durate dei video del dataset per recuperare
 
 `v3`: Nella terza versione si è cercato di risolvere il problema che ha afflitto il calcolo del gt per l'`ID_4` (come descritto nella rispettiva esecuzione). Si è pensato che la staticità dei video nei primi secondi poteva far risultare uguali tanti frame e quindi indurre l'errore nel calcolo del gt. Quindi si è preso come frame da confrontare quello di un istante di tempo più avanti (dove c'è più probabilità che ci sia movimento). Inoltre si è tolta la tolleranza dell'errore medio visto che si confrontano gli stessi video tagliati, l'errore tra lo stesso frame dovrebbe essere 0. L'errore per l'ID_4 sembra essersi ridotto ma persiste ugualmente. Si prevedono altre migliorie per eliminare l'errore
 
+`v4`:
+
 Questo script mette a disposizione delle funzioni che poi verranno utilizzate dal prossimo script che servirà per il calcolo delle metriche. Inoltre è comunque possibile eseguirlo per stampare sul terminale i dati (durate, offsets, ...) di alcuni gruppi di video. Si può eseguire con il comando come nel seguente esempio:
 ```bash
 python src/custom_scripts/ground_truth_extractor.py --root "$RAW_ROOT" --ids ID_0 ID_1
