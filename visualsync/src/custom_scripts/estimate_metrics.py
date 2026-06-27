@@ -3,8 +3,9 @@
 estimate_metrics.py
 
 Modulo per il calcolo delle metriche di allineamento temporale.
-Implementa una logica di controllo sul database CSV: se l'ID manca, invoca 
-automaticamente l'estrattore per generare e salvare i dati mancanti.
+Implementa una logica di controllo sul database CSV del Ground Truth (custom_out/ground_truths.csv).
+Inoltre, persiste i risultati scientifici in custom_out/metrics_report.csv salvaguardando
+il flag 'offset_mode' e registrando gli errori granulari per singola vista.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from typing import Optional, Any
 import numpy as np
 import pandas as pd
 
-# Importiamo i componenti necessari per il Fallback dinamico
+# Importiamo i componenti necessari per il Fallback dinamico dal modulo gt_extractor
 try:
     from ground_truth_extractor import get_all_synchronization_data, save_single_id_to_csv
 except ImportError:
@@ -52,12 +53,12 @@ def load_model_predictions(result_root: str | Path) -> Optional[dict[str, float]
     except Exception: return None
 
 
-def load_gt_or_compute_fallback(raw_root: str | Path, result_root: str | Path, id_name: str) -> Optional[dict[str, float]]:
+def load_gt_or_compute_fallback(raw_root: str | Path, id_name: str) -> Optional[dict[str, float]]:
     """
-    LOGICA REQUISITO FONDAMENTALE: Controlla se l'id esiste nel CSV.
-    Se non esiste, richiama il ground_truth_extractor per calcolarlo, salvarlo e restituirlo.
+    Controlla se l'id esiste nel file hardcoded custom_out/ground_truths.csv.
+    Se non esiste (Cache Miss), invoca l'estrattore visivo per calcolarlo e salvarlo.
     """
-    csv_path = Path(result_root) / "ground_truth_metadata.csv"
+    csv_path = Path("custom_out") / "ground_truths.csv"
     
     # Tentativo di lettura da cache CSV
     if csv_path.is_file():
@@ -73,15 +74,12 @@ def load_gt_or_compute_fallback(raw_root: str | Path, result_root: str | Path, i
         except Exception as e:
             print(f"  [!] Errore lettura CSV cache ({e}). Procedo al ricalcolo forzato.")
 
-    # FALLBACK ATTIVO: L'ID non esiste o il file manca. Estraiamo al volo.
-    print(f"  [!] Cache Miss per '{id_name}' nel CSV. Attivazione dinamica dell'estrattore visivo...")
+    # FALLBACK: L'ID manca nel database. Estrazione al volo e autoguarigione.
+    print(f"  [!] Cache Miss per '{id_name}' in {csv_path}. Attivazione dinamica dell'estrattore visivo...")
     try:
-        # Calcolo dei dati di sincronizzazione completi
         computed_data = get_all_synchronization_data(raw_root, id_name)
-        # Salvataggio immediato sul CSV centralizzato per sanare la situazione futura
         save_single_id_to_csv(id_name, computed_data, csv_path)
         
-        # Estraiamo i global offsets appena calcolati per restituirli alla pipeline delle metriche
         glob_offsets = computed_data["global_offsets_secondi"]
         return {
             "TOP": glob_offsets.get("TOP", 0.0),
@@ -89,8 +87,60 @@ def load_gt_or_compute_fallback(raw_root: str | Path, result_root: str | Path, i
             "FPV": glob_offsets.get("FPV", 0.0)
         }
     except Exception as e:
-        print(f"  [!] Errore critico nel Fallback di estrazione del Ground Truth: {e}", file=sys.stderr)
+        print(f"  [!] Errore critical nel Fallback di estrazione del Ground Truth: {e}", file=sys.stderr)
         return None
+
+
+def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_errors: dict[str, float]):
+    """
+    Esegue l'Upsert delle metriche nel report CSV.
+    Se l'ID esiste già ed ha un valore valido per 'offset_mode' (es. 'normal' o 'flipped'), 
+    questo viene preservato. Se non esiste o è vuoto/nullo, viene impostato a 'undefined'.
+    """
+    csv_path = Path("custom_out") / "metrics_report.csv"
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Valore di default se il record non è mai stato manipolato da exec_visualsync
+    existing_offset_mode = "undefined"
+    old_df = pd.DataFrame()
+
+    if csv_path.is_file():
+        try:
+            old_df = pd.read_csv(csv_path)
+            existing_row = old_df[old_df['id'] == id_name]
+            if not existing_row.empty and 'offset_mode' in old_df.columns:
+                val = existing_row.iloc[0]['offset_mode']
+                # Se il valore è già valorizzato con qualcosa di sensato (diverso da undefined/nan/vuoto)
+                if pd.notna(val) and str(val).strip() != "" and str(val).lower() not in ["nan", "undefined"]:
+                    existing_offset_mode = str(val).strip()
+            
+            # Rimuoviamo il vecchio record per l'Upsert
+            old_df = old_df[old_df['id'] != id_name]
+        except Exception as e:
+            print(f"  [!] Avviso: Impossibile leggere il vecchio report metriche ({e}). Ne verrà creato uno nuovo.")
+
+    # Nuova riga estesa con gli errori specifici di TOP e FPV
+    new_row = {
+        "id": id_name,
+        "TOP_error_ms": views_errors["TOP"],
+        "FPV_error_ms": views_errors["FPV"],
+        "mean_error_ms": metrics_dict["mean_error_ms"],
+        "median_error_ms": metrics_dict["median_error_ms"],
+        "A@100ms": metrics_dict["A@100ms"],
+        "A@500ms": metrics_dict["A@500ms"],
+        "AUC": metrics_dict["AUC"],
+        "offset_mode": existing_offset_mode  # Preservato o marcato come 'undefined'
+    }
+    new_df = pd.DataFrame([new_row])
+
+    if not old_df.empty:
+        combined_df = pd.concat([old_df, new_df], ignore_index=True)
+        combined_df = combined_df.sort_values(by='id').reset_index(drop=True)
+        combined_df.to_csv(csv_path, index=False)
+    else:
+        new_df.to_csv(csv_path, index=False)
+        
+    print(f"[+] Record metriche salvato in {csv_path} (offset_mode: '{existing_offset_mode}')")
 
 
 def print_metrics_report(res: dict[str, Any]):
@@ -123,7 +173,7 @@ def print_metrics_report(res: dict[str, Any]):
 
 def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str, fps: float, max_auc_tau: float = 2000.0) -> dict[str, Any]:
     # Risoluzione del GT con logica di fallback integrata
-    gt_sec = load_gt_or_compute_fallback(raw_root, result_root, id_name)
+    gt_sec = load_gt_or_compute_fallback(raw_root, id_name)
     if gt_sec is None:
         return {"success": False, "msg": f"Impossibile ricavare il Ground Truth per l'ID: {id_name}."}
         
@@ -153,15 +203,26 @@ def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str,
     accuracies = [np.mean(errors <= t) for t in thresholds]
     auc = np.trapz(accuracies, thresholds) / max_auc_tau
     
+    metrics_result = {
+        "mean_error_ms": mean_error, 
+        "median_error_ms": median_error, 
+        "A@100ms": a_100, 
+        "A@500ms": a_500, 
+        "AUC": auc
+    }
+    
+    # Salvataggio persistente nel report CSV includendo gli errori delle singole viste
+    save_metrics_to_csv(id_name, metrics_result, id_errors_ms)
+    
     return {
         "success": True, "id_name": id_name, "fps": fps,
-        "metrics": {"mean_error_ms": mean_error, "median_error_ms": median_error, "A@100ms": a_100, "A@500ms": a_500, "AUC": auc},
+        "metrics": metrics_result,
         "details": {"views": id_errors_ms, "gt_seconds": gt_sec, "pred_frames": preds_frame}
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Calcolo metriche scientifiche con auto-guarigione cache.")
+    parser = argparse.ArgumentParser(description="Calcolo metriche scientifiche con auto-guarigione cache e persistenza.")
     parser.add_argument("--raw_root", type=Path, default=os.environ.get("RAW_ROOT"))
     parser.add_argument("--result_root", type=Path, default=os.environ.get("RESULT_ROOT"))
     parser.add_argument("--id", type=str, default=os.environ.get("GROUP"))
@@ -177,7 +238,6 @@ def main():
         print(f"[!] Errore: {res['msg']}", file=sys.stderr)
         sys.exit(1)
 
-    # Chiamata alla funzione di stampa centralizzata
     print_metrics_report(res)
 
 
