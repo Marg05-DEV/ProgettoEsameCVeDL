@@ -843,7 +843,7 @@ Abbiamo fatto anche la valutazione delle metriche:
 ```
 
 ### 10a esecuzione:
-**Obiettivo**: Andare a testare il modello su un gruppo di video sintetico, cioè generato a partire da video sincronizzati (del ID_0) a cui viene  applicato un offset ad una vista (TOP + 90s). Questo viene fatto per capire la convenzione dei segni degli offset utilizzata dal modello. Infatti, nella esecuzioen precedente avevamo delle discrepanze tra il video ottenuto (che era abbastanza sincronizzato) con gli offset predetti e il gt. Infatti se gli offset predetti fossero stati di segno opposto o il gt fosse stato di segno opposto allora le metriche calcolate sarebbero state molto buone e conincidenti con quello che si vedeva dal video risultante.
+**Obiettivo**: Andare a testare il modello su un gruppo di video sintetico, cioè generato a partire da video sincronizzati (del ID_0) a cui viene  applicato un offset ad una vista (TOP + 90f). Questo viene fatto per capire la convenzione dei segni degli offset utilizzata dal modello. Infatti, nella esecuzioen precedente avevamo delle discrepanze tra il video ottenuto (che era abbastanza sincronizzato) con gli offset predetti e il gt. Infatti se gli offset predetti fossero stati di segno opposto o il gt fosse stato di segno opposto allora le metriche calcolate sarebbero state molto buone e conincidenti con quello che si vedeva dal video risultante.
 
 Abbiamo lanciato quindi il modello con le seguenti impostazioni:
 ```
@@ -972,3 +972,126 @@ python src/custom_scripts/run_full_validation.py
 - ~~Possibile script python per definire le variabili globali tutte con un comando unico (praticamente eseguire il passo 3 con un solo comando)~~
 
 - Capire perchè, durante il crop del dataset, la vista FPV viene fatto il source non a 30 fps ma a 29,97
+
+
+## RISULTATI:
+[]
+- ID_0, 15-30, 10fps
+  ```text
+  =========================================================================
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_0 (@ 10.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+      Vista TOP  | GT: +0.77s (+7.7 f) | Pred: +11.0 f | Errore: 333.33 ms
+      Vista FPV  | GT: -1.05s (-10.5 f) | Pred: -24.0 f | Errore: 1347.23 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+      Errore Medio (Mean Error):      840.28 ms
+      Errore Mediano (Median Error):   840.28 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   50.0%
+      Area Sotto la Curva (AUC):       0.5797
+  =========================================================================
+  ```
+
+- ID_0, 30-45, 10fps
+  ```text
+  =========================================================================                                                                                             
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_0 (@ 10.0 FPS)                                                                                                        
+  =========================================================================                                                                                             
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):                                                                                                     
+      Vista TOP  | GT: +0.77s (+7.7 f) | Pred: -23.0 f | Errore: 3066.67 ms                                                                                            
+      Vista FPV  | GT: -1.05s (-10.5 f) | Pred: -4.0 f | Errore: 652.77 ms                                                                                             
+                                                                                                                                                                        
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):                                                                                                                     
+      Errore Medio (Mean Error):      1859.72 ms                                                                                                                       
+      Errore Mediano (Median Error):   1859.72 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.3369
+  =========================================================================
+  ```
+
+- ID_1, 15-30, 10fps
+  ```text
+  ```
+
+- ID_2, 15-30, 15fps
+  ```text
+  ```
+
+- ID_3, 30-40, 20fps
+  ```text
+  =========================================================================
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_3 (@ 20.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+      Vista TOP  | GT: +1.30s (+26.0 f) | Pred: -21.0 f | Errore: 2350.00 ms
+      Vista FPV  | GT: -0.69s (-13.7 f) | Pred: -25.0 f | Errore: 563.23 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+      Errore Medio (Mean Error):      1456.62 ms
+      Errore Mediano (Median Error):   1456.62 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.3591
+  =========================================================================
+  ```
+
+- ID_4, 30-40, 25fps
+  ```text
+  ```
+
+- ID_5, 30-40, 25fps
+  ```text
+  =========================================================================                                                                                             
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_5 (@ 25.0 FPS)                                                                                                        
+  =========================================================================                                                                                             
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):                                                                                                     
+      Vista TOP  | GT: +0.87s (+21.7 f) | Pred: +13.0 f | Errore: 346.67 ms                                                                                            
+      Vista FPV  | GT: -1.42s (-35.5 f) | Pred: +0.0 f | Errore: 1419.67 ms                                                                                            
+                                                                                                                                                                        
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):                                                                                                                     
+      Errore Medio (Mean Error):      883.17 ms                                                                                                                        
+      Errore Mediano (Median Error):   883.17 ms                                                                                                                       
+      Accuratezza @ 100ms (A@100ms):   0.0%                                                                                                                            
+      Accuratezza @ 500ms (A@500ms):   50.0%                                                                                                                           
+      Area Sotto la Curva (AUC):       0.5585                                                                                                                          
+  ========================================================================= 
+  ```
+
+- ID_6, 30-38, 30fps
+  ```text
+  =========================================================================
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_6 (@ 30.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+      Vista TOP  | GT: +0.90s (+27.0 f) | Pred: -25.0 f | Errore: 1733.33 ms
+      Vista FPV  | GT: -0.59s (-17.6 f) | Pred: +25.0 f | Errore: 1418.90 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+      Errore Medio (Mean Error):      1576.12 ms
+      Errore Mediano (Median Error):   1576.12 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.2120
+  =========================================================================
+  ```
+
+- ID_7, 30-38, 30fps
+  ```text
+  =========================================================================
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_7 (@ 30.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
+      Vista TOP  | GT: +1.93s (+58.0 f) | Pred: -49.0 f | Errore: 3566.67 ms
+      Vista FPV  | GT: +0.01s (+0.4 f) | Pred: +95.0 f | Errore: 3152.23 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+      Errore Medio (Mean Error):      3359.45 ms
+      Errore Mediano (Median Error):   3359.45 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.0000
+  =========================================================================
+  ```

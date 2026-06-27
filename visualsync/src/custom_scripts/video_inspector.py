@@ -5,6 +5,8 @@ video_inspector.py
 Strumento scientifico interattivo in CLI per la verifica visiva della sincronizzazione.
 Funziona in un ciclo continuo: ad ogni iterazione accetta nuovi offset, 
 sovrascrive il file PNG ad alta risoluzione e stampa un riepilogo dei frame estratti.
+
+Aggiornato con la convenzione dei segni del modello e l'inserimento flessibile degli FPS.
 """
 
 import argparse
@@ -34,10 +36,11 @@ def extract_and_save_canvas(id_dir, time_ref, offsets_sec, output_name, width_pe
         cap = cv2.VideoCapture(str(video_path))
         orig_fps = cap.get(cv2.CAP_PROP_FPS)
         if not orig_fps or orig_fps <= 0:
-            orig_fps = 30.0 # Dataset reale del PRIN a 30 FPS
+            orig_fps = 30.0  # Dataset reale del PRIN a 30 FPS
             
         # CALCOLO MATEMATICO DEL FRAME SUL VIDEO ORIGINALE (30 FPS)
-        target_seconds = time_ref - offsets_sec[view]
+        # Allineato alla convenzione fisica dell'offset globale del modello
+        target_seconds = time_ref + offsets_sec[view]
         target_frame = int(target_seconds * orig_fps)
         
         cap.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
@@ -94,7 +97,7 @@ def main():
         sys.exit(1)
 
     print("\n=========================================================================")
-    print(f" INTERFACCIA DI VERIFICA INTERATTIVA: {args.id}")
+    print(f" INTERFACCIA DI VERIFICA INTERATTIVA V2: {args.id}")
     print("=========================================================================")
     print(f"[*] I video originali verranno analizzati a 30 FPS.")
     print(f"[*] L'immagine ad alta risoluzione verrà salvata in: {args.output_name}")
@@ -103,7 +106,7 @@ def main():
 
     # Stato iniziale degli offset (in secondi)
     offsets_sec = {"TOP": 0.0, "TPV": 0.0, "FPV": 0.0}
-    time_ref = 5.0 # Secondo master di default iniziale
+    time_ref = 20.0  # Secondo master di default iniziale
     
     # Primo rendering iniziale
     extract_and_save_canvas(id_dir, time_ref, offsets_sec, args.output_name, args.width)
@@ -130,33 +133,38 @@ def main():
 
         elif scelta == 'o':
             print("\nScegli l'unità di misura per l'inserimento:")
-            print(" [1] Inserisci in SECONDI (es. 10.83 o -3.91)")
-            print(" [2] Inserisci in FRAME basandoti sul modello a 10 FPS (es. 11.0 o -24.0)")
-            print(" [3] Inserisci in FRAME basandoti sul modello a 15 FPS")
-            tipo_input = input("Scegli (1, 2 o 3): ").strip()
+            print(" [1] Inserisci i valori in SECONDI (es. 1.10 o -2.40)")
+            print(" [2] Inserisci i valori in FRAME (es. 11.0 o -24.0)")
+            tipo_input = input("Scegli (1 o 2): ").strip()
+
+            if tipo_input not in ['1', '2']:
+                print("[!] Opzione non valida. Operazione annullata.")
+                continue
+
+            # Se l'utente sceglie i frame, definiamo il campionamento specifico degli FPS del modello corrente
+            fps_conversione = 1.0
+            if tipo_input == '2':
+                try:
+                    fps_input = float(input(" Inserisci gli FPS del modello con cui hai lavorato (es. 10, 15, 20, 30): "))
+                    if fps_input <= 0:
+                        print("[!] Gli FPS devono essere un valore positivo. Operazione annullata.")
+                        continue
+                    fps_conversione = fps_input
+                except ValueError:
+                    print("[!] Valore FPS non valido. Operazione annullata.")
+                    continue
 
             try:
+                print(f"\n--- Inserimento dati ({'Secondi' if tipo_input == '1' else f'Frame @ {fps_conversione} FPS'}):")
                 top_in = float(input(" Nuova misura per TOP: "))
                 tpv_in = float(input(" Nuova misura per TPV: "))
                 fpv_in = float(input(" Nuova misura per FPV: "))
                 
-                if tipo_input == '1':
-                    offsets_sec["TOP"] = top_in
-                    offsets_sec["TPV"] = tpv_in
-                    offsets_sec["FPV"] = fpv_in
-                elif tipo_input == '2':
-                    # Conversione da frame del modello (10 FPS) a secondi
-                    offsets_sec["TOP"] = top_in / 10.0
-                    offsets_sec["TPV"] = tpv_in / 10.0
-                    offsets_sec["FPV"] = fpv_in / 10.0
-                elif tipo_input == '3':
-                    # Conversione da frame del modello (15 FPS) a secondi
-                    offsets_sec["TOP"] = top_in / 15.0
-                    offsets_sec["TPV"] = tpv_in / 15.0
-                    offsets_sec["FPV"] = fpv_in / 15.0
-                else:
-                    print("[!] Opzione non valida. Offset non modificati.")
-                    continue
+                # Conversione matematica in secondi
+                offsets_sec["TOP"] = top_in / fps_conversione
+                offsets_sec["TPV"] = tpv_in / fps_conversione
+                offsets_sec["FPV"] = fpv_in / fps_conversione
+
             except ValueError:
                 print("[!] Input numerico errato. Operazione annullata.")
                 continue
@@ -169,7 +177,7 @@ def main():
         summary = extract_and_save_canvas(id_dir, time_ref, offsets_sec, args.output_name, args.width)
         
         if summary:
-            # Stampa del riepilogo a terminale (Sostituisce le informazioni a schermo della vecchia finestra)
+            # Stampa del riepilogo a terminale
             print("\n=========================================================================")
             print(f" RIEPILOGO COORDINATE TEMPORALI GENERATE (Video Originali a 30 FPS)")
             print("=========================================================================")

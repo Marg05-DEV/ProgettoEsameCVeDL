@@ -151,26 +151,26 @@ def get_pairwise_offsets(durations: dict[str, dict[str, dict[str, float]]]) -> d
         t_tpv = views_data.get("TPV", {}).get("diff", 0.0)
         t_fpv = views_data.get("FPV", {}).get("diff", 0.0)
         
-        pairwise_offsets[id_name]["TOP__TPV"] = t_top - t_tpv
-        pairwise_offsets[id_name]["TOP__FPV"] = t_top - t_fpv
-        pairwise_offsets[id_name]["TPV__FPV"] = t_tpv - t_fpv
+        pairwise_offsets[id_name]["TOP__TPV"] = t_tpv - t_top 
+        pairwise_offsets[id_name]["TOP__FPV"] = t_fpv - t_top  
+        pairwise_offsets[id_name]["TPV__FPV"] = t_fpv - t_tpv
         
     return pairwise_offsets
 
 
-def get_global_offsets(durations: dict[str, dict[str, dict[str, float]]]) -> dict[str, dict[str, float]]:
+def get_global_offsets(pairwise: dict[str, dict[str, dict[str, float]]]) -> dict[str, dict[str, float]]:
     """Calcola gli offset globali impostando la telecamera TPV come perno fisso (0.0)."""
     global_offsets = {}
-    for id_name, views_data in durations.items():
+    for id_name, views_data in pairwise.items():
         global_offsets[id_name] = {}
         
-        t_top = views_data.get("TOP", {}).get("diff", 0.0)
-        t_tpv = views_data.get("TPV", {}).get("diff", 0.0)
-        t_fpv = views_data.get("FPV", {}).get("diff", 0.0)
+        t_top_tpv = views_data.get("TOP__TPV", 0.0)
+        t_tpv = 0.0
+        t_tpv_fpv = views_data.get("TPV__FPV", 0.0)
         
-        global_offsets[id_name]["TPV"] = 0.0
-        global_offsets[id_name]["TOP"] = t_top - t_tpv
-        global_offsets[id_name]["FPV"] = t_fpv - t_tpv
+        global_offsets[id_name]["TPV"] = t_tpv
+        global_offsets[id_name]["TOP"] = t_top_tpv - t_tpv
+        global_offsets[id_name]["FPV"] = t_tpv - t_tpv_fpv
         
     return global_offsets
 
@@ -178,8 +178,14 @@ def get_global_offsets(durations: dict[str, dict[str, dict[str, float]]]) -> dic
 def get_all_synchronization_data(root_path: str | Path, ids: list[str]) -> dict[str, dict[str, Any]]:
     """Funzione omnicomprensiva richiamabile dagli altri script (metriche e ispezione)."""
     durations = get_durations(root_path, ids)
+    print(durations)
+    print("===============================")
     pairwise = get_pairwise_offsets(durations)
-    glob = get_global_offsets(durations)
+    print(pairwise)
+    print("===============================")
+    glob = get_global_offsets(pairwise)
+    print(glob)
+    print("===============================")
     
     complete_dataset = {}
     for id_name in durations.keys():
