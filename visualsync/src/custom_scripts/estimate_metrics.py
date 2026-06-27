@@ -5,7 +5,7 @@ estimate_metrics.py
 Modulo per il calcolo delle metriche di allineamento temporale.
 Implementa una logica di controllo sul database CSV del Ground Truth (custom_out/ground_truths.csv).
 Inoltre, persiste i risultati scientifici in custom_out/metrics_report.csv salvaguardando
-il flag 'offset_mode' e registrando gli errori granulari per singola vista.
+il flag 'offset_mode' e i dati di CodeCarbon da sovrascritture accidentali.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ from typing import Optional, Any
 import numpy as np
 import pandas as pd
 
-# Importiamo i componenti necessari per il Fallback dinamico dal modulo gt_extractor
 try:
     from ground_truth_extractor import get_all_synchronization_data, save_single_id_to_csv
 except ImportError:
@@ -54,13 +53,8 @@ def load_model_predictions(result_root: str | Path) -> Optional[dict[str, float]
 
 
 def load_gt_or_compute_fallback(raw_root: str | Path, id_name: str) -> Optional[dict[str, float]]:
-    """
-    Controlla se l'id esiste nel file hardcoded custom_out/ground_truths.csv.
-    Se non esiste (Cache Miss), invoca l'estrattore visivo per calcolarlo e salvarlo.
-    """
     csv_path = Path("custom_out") / "ground_truths.csv"
     
-    # Tentativo di lettura da cache CSV
     if csv_path.is_file():
         try:
             df = pd.read_csv(csv_path)
@@ -74,7 +68,6 @@ def load_gt_or_compute_fallback(raw_root: str | Path, id_name: str) -> Optional[
         except Exception as e:
             print(f"  [!] Errore lettura CSV cache ({e}). Procedo al ricalcolo forzato.")
 
-    # FALLBACK: L'ID manca nel database. Estrazione al volo e autoguarigione.
     print(f"  [!] Cache Miss per '{id_name}' in {csv_path}. Attivazione dinamica dell'estrattore visivo...")
     try:
         computed_data = get_all_synchronization_data(raw_root, id_name)
@@ -87,39 +80,53 @@ def load_gt_or_compute_fallback(raw_root: str | Path, id_name: str) -> Optional[
             "FPV": glob_offsets.get("FPV", 0.0)
         }
     except Exception as e:
-        print(f"  [!] Errore critical nel Fallback di estrazione del Ground Truth: {e}", file=sys.stderr)
+        print(f"  [!] Errore critico nel Fallback di estrazione del Ground Truth: {e}", file=sys.stderr)
         return None
 
 
-def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_errors: dict[str, float]):
+def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_errors: dict[str, float], 
+                        offset_mode_override: Optional[str] = None, energy_data: Optional[dict[str, float]] = None):
     """
     Esegue l'Upsert delle metriche nel report CSV.
-    Se l'ID esiste già ed ha un valore valido per 'offset_mode' (es. 'normal' o 'flipped'), 
-    questo viene preservato. Se non esiste o è vuoto/nullo, viene impostato a 'undefined'.
+    Salvaguarda sia 'offset_mode' che i dati energetici di CodeCarbon da azzeramenti o sovrascritture.
     """
     csv_path = Path("custom_out") / "metrics_report.csv"
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # Valore di default se il record non è mai stato manipolato da exec_visualsync
-    existing_offset_mode = "undefined"
+    # Valori di fallback iniziali per record totalmente nuovi
+    existing_offset_mode = "undefined" if offset_mode_override is None else offset_mode_override
+    duration = 0.0
+    energy = 0.0
+    emissions = 0.0
+    
+    if energy_data:
+        duration = energy_data.get("duration_seconds", 0.0)
+        energy = energy_data.get("energy_kwh", 0.0)
+        emissions = energy_data.get("emissions_kg", 0.0)
+
     old_df = pd.DataFrame()
 
     if csv_path.is_file():
         try:
             old_df = pd.read_csv(csv_path)
             existing_row = old_df[old_df['id'] == id_name]
-            if not existing_row.empty and 'offset_mode' in old_df.columns:
-                val = existing_row.iloc[0]['offset_mode']
-                # Se il valore è già valorizzato con qualcosa di sensato (diverso da undefined/nan/vuoto)
-                if pd.notna(val) and str(val).strip() != "" and str(val).lower() not in ["nan", "undefined"]:
-                    existing_offset_mode = str(val).strip()
+            if not existing_row.empty:
+                # 1. Protezione di offset_mode
+                if offset_mode_override is None and 'offset_mode' in old_df.columns:
+                    val = existing_row.iloc[0]['offset_mode']
+                    if pd.notna(val) and str(val).strip() != "" and str(val).lower() not in ["nan", "undefined"]:
+                        existing_offset_mode = str(val).strip()
+                
+                # 2. Protezione conservativa dei dati energetici preesistenti
+                if not energy_data:
+                    duration = sanitize_float_value(existing_row.iloc[0].get("duration_seconds", 0.0))
+                    energy = sanitize_float_value(existing_row.iloc[0].get("energy_kwh", 0.0))
+                    emissions = sanitize_float_value(existing_row.iloc[0].get("emissions_kg", 0.0))
             
-            # Rimuoviamo il vecchio record per l'Upsert
             old_df = old_df[old_df['id'] != id_name]
         except Exception as e:
-            print(f"  [!] Avviso: Impossibile leggere il vecchio report metriche ({e}). Ne verrà creato uno nuovo.")
+            print(f"  [!] Avviso: Impossibile leggere il vecchio report metriche ({e}).")
 
-    # Nuova riga estesa con gli errori specifici di TOP e FPV
     new_row = {
         "id": id_name,
         "TOP_error_ms": views_errors["TOP"],
@@ -129,7 +136,10 @@ def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_erro
         "A@100ms": metrics_dict["A@100ms"],
         "A@500ms": metrics_dict["A@500ms"],
         "AUC": metrics_dict["AUC"],
-        "offset_mode": existing_offset_mode  # Preservato o marcato come 'undefined'
+        "offset_mode": existing_offset_mode,
+        "duration_seconds": duration,
+        "energy_kwh": energy,
+        "emissions_kg": emissions
     }
     new_df = pd.DataFrame([new_row])
 
@@ -139,15 +149,9 @@ def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_erro
         combined_df.to_csv(csv_path, index=False)
     else:
         new_df.to_csv(csv_path, index=False)
-        
-    print(f"[+] Record metriche salvato in {csv_path} (offset_mode: '{existing_offset_mode}')")
 
 
 def print_metrics_report(res: dict[str, Any]):
-    """
-    FUNZIONE CENTRALIZZATA DI PRINT DEL REPORT SCIENTIFICO
-    Esportabile in run_full_validation.py ed exec_visualsync.py.
-    """
     metrics = res["metrics"]
     dt = res["details"]
     
@@ -171,8 +175,9 @@ def print_metrics_report(res: dict[str, Any]):
     print("=========================================================================\n")
 
 
-def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str, fps: float, max_auc_tau: float = 2000.0) -> dict[str, Any]:
-    # Risoluzione del GT con logica di fallback integrata
+def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str, fps: float, 
+                    max_auc_tau: float = 2000.0, offset_mode_override: Optional[str] = None, 
+                    energy_data: Optional[dict[str, float]] = None, save_to_csv: bool = True) -> dict[str, Any]:
     gt_sec = load_gt_or_compute_fallback(raw_root, id_name)
     if gt_sec is None:
         return {"success": False, "msg": f"Impossibile ricavare il Ground Truth per l'ID: {id_name}."}
@@ -211,8 +216,8 @@ def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str,
         "AUC": auc
     }
     
-    # Salvataggio persistente nel report CSV includendo gli errori delle singole viste
-    save_metrics_to_csv(id_name, metrics_result, id_errors_ms)
+    if save_to_csv:
+        save_metrics_to_csv(id_name, metrics_result, id_errors_ms, offset_mode_override, energy_data)
     
     return {
         "success": True, "id_name": id_name, "fps": fps,
