@@ -48,6 +48,9 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
     group_name = f"ID_{group_id}"
     env = load_vars_from_bash(group_id, start_sec, end_sec, fps)
 
+    if start_from_step is None or start_from_step <= 4:
+        purge_previous_outputs(env, group_id, start_sec, end_sec, fps)
+
     total_frames = (end_sec - start_sec) * fps
     suffix = f"000_{total_frames:03d}"
     top_name = f"{group_name}_cam_top_{suffix}"
@@ -140,6 +143,36 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
     return True
 
 
+def purge_previous_outputs(env, group_id, start_sec, end_sec, fps):
+    """
+    Elimina preventivamente solo i dati intermedi (DATA, TRACK, VGGT).
+    Mantiene intatta RESULT_ROOT per non compromettere la cronologia o i test correnti.
+    """
+    print(f"\n{LOG_PREFIX} [-] Avvio pulizia preventiva dei dati intermedi per ID_{group_id}...")
+    
+    group_name = f"ID_{group_id}"
+    total_frames = (end_sec - start_sec) * fps
+    suffix = f"000_{total_frames:03d}"
+    
+    # Escludiamo RESULT_ROOT da questa lista
+    folders_to_delete = [
+        os.path.join(env.get("DATA_ROOT", ""), f"{group_name}_cam_top_{suffix}"),
+        os.path.join(env.get("DATA_ROOT", ""), f"{group_name}_cam_tpv_{suffix}"),
+        os.path.join(env.get("DATA_ROOT", ""), f"{group_name}_fpv_{suffix}"),
+        os.path.join(env.get("TRACK_ROOT", ""), group_name),
+        os.path.join("/app/Progetto/visualsync", "vggt_output", f"{group_name}_cam_top_{suffix}"),
+        os.path.join("/app/Progetto/visualsync", "vggt_output", f"{group_name}_cam_tpv_{suffix}"),
+    ]
+    
+    for folder in folders_to_delete:
+        if os.path.exists(folder):
+            try:
+                shutil.rmtree(folder)
+                print(f"    -> Rimossa cartella intermedia obsoleta: {folder}")
+            except Exception as e:
+                print(f"    [!] Impossibile rimuovere {folder}: {e}")
+
+
 
 def print_execution_summary(id_str, status, elapsed_time, energy_kwh, emissions):
     """
@@ -171,10 +204,12 @@ def print_final_table(results):
 
 def load_run_settings(test_dir=None):
     """
-    Carica il CSV di configurazione centralizzando la gestione degli errori.
+    Carica il CSV di configurazione da custom_out o da una sua sottocartella.
     """
-    if dir:
-    csv_path = os.path.join("custom_out", "run_setting.csv")
+    # Se test_dir è specificato, punta alla sottocartella, altrimenti alla radice di custom_out
+    base_dir = os.path.join("custom_out", test_dir) if test_dir else "custom_out"
+    csv_path = os.path.join(base_dir, "run_setting.csv")
+
     if not os.path.exists(csv_path):
         print(f"Errore critico: Il file '{csv_path}' non esiste.")
         sys.exit(1)
@@ -208,8 +243,16 @@ if __name__ == "__main__":
         print("Errore: Selezione non valida.")
         sys.exit(1)
         
-    # Caricamento preventivo del CSV se richiesto dalle modalità 2 o 3
-    df_settings = load_run_settings() if scelta in ["2", "3"] else None
+    test_dir = None
+    if scelta in ["2", "3"]:
+        test_dir_input = input("Inserisci il nome della cartella del test dentro custom_out (Premi Invio per root): ").strip()
+        if test_dir_input:
+            test_dir = test_dir_input
+        else:
+            test_dir = None 
+            
+    # Caricamento preventivo del CSV passando la variabile test_dir appena calcolata
+    df_settings = load_run_settings(test_dir) if scelta in ["2", "3"] else None
 
     # ========================================================================
     # BLOCCO DI SINOPSIS / INPUT (GESTIONE DELLE VARIABILI DI ESECUZIONE)
@@ -299,12 +342,39 @@ if __name__ == "__main__":
             if success:
                 status_str = f"{elapsed_time:.2f} s"
                 print_execution_summary(f"ID_{i}", status_str, elapsed_time, energy_kwh, emissions)
+
+                pipeline_vars = load_vars_from_bash(i, params["start_sec"], params["end_sec"], params["fps"])
+                raw_root = pipeline_vars.get("RAW_ROOT")
+                result_root = pipeline_vars.get("RESULT_ROOT")
+                standard_result_root = pipeline_vars.get("RESULT_ROOT")  # Es: /app/Progetto/visualsync/result/ID_1
+            
+                # Identifichiamo la cartella madre di tutti i risultati (es: /app/Progetto/visualsync/result)
+                # e il nome della cartella specifica del gruppo (es: ID_1)
+                result_parent_dir = os.path.dirname(standard_result_root)
+                group_folder_name = os.path.basename(standard_result_root)
                 
+                actual_result_root = standard_result_root    
+                
+                if test_dir:
+                    # La cartella 'result' viene rinominata in 'results_test_1'
+                    workspace_dir = os.path.dirname(result_parent_dir)  # Es: /app/Progetto/visualsync
+                    new_result_parent_name = f"results_{test_dir}"       # Es: results_test_1
+                    new_result_parent_path = os.path.join(workspace_dir, new_result_parent_name)
+                    
+                    # Se la cartella 'result' standard esiste e non abbiamo ancora archiviato questo test
+                    if os.path.exists(result_parent_dir) and not os.path.exists(new_result_parent_path):
+                        try:
+                            os.rename(result_parent_dir, new_result_parent_path)
+                            print(f"[+] Archiviazione: Rinominalo '{result_parent_dir}' in '{new_result_parent_path}'")
+                        except Exception as e:
+                            print(f"[!] Errore durante la rinomina della cartella radice dei risultati: {e}")
+                            new_result_parent_path = result_parent_dir
+                    
+                    # Ricostruiamo il percorso corretto per compute_metrics dentro la nuova cartella archiviata
+                    actual_result_root = os.path.join(new_result_parent_path, group_folder_name)
+
                 # Esegui calcolo metriche se applicabile
                 if params["start_step"] is None or params["start_step"] <= 12:
-                    pipeline_vars = load_vars_from_bash(i, params["start_sec"], params["end_sec"], params["fps"])
-                    raw_root = pipeline_vars.get("RAW_ROOT")
-                    result_root = pipeline_vars.get("RESULT_ROOT")
                     
                     energy_dict = {
                         "duration_seconds": elapsed_time,
@@ -316,7 +386,8 @@ if __name__ == "__main__":
                         raw_root, result_root, f"ID_{i}", float(params["fps"]),
                         offset_mode_override=os.environ.get("VS_LAST_OFFSET_MODE", "normal"),
                         energy_data=energy_dict,
-                        save_to_csv=True
+                        save_to_csv=True,
+                        test_dir=test_dir
                     )
                     print_metrics_report(res_definitivo)
             else:
@@ -371,15 +442,26 @@ if __name__ == "__main__":
                 # Eseguiamo il lookup di load_vars_from_bash per trovare i path corretti di output del modello
                 pipeline_vars = load_vars_from_bash(i, start_sec_val, end_sec_val, int(fps_val))
                 raw_root = pipeline_vars.get("RAW_ROOT")
-                result_root = pipeline_vars.get("RESULT_ROOT")
+                standard_result_root = pipeline_vars.get("RESULT_ROOT")
                 
-                # Richiamiamo compute_metrics impostando save_to_csv=False per non sovrascrivere
-                # i consumi storici reali precedentemente calcolati in fase di run.
+                # Se l'utente ha caricato un test specifico, cerchiamo gli offset in results_<test_dir>
+                if test_dir:
+                    parent_dir = os.path.dirname(standard_result_root)
+                    actual_result_root = os.path.join(parent_dir, f"results_{test_dir}")
+                else:
+                    actual_result_root = standard_result_root
+                
+                print(f"[Lookup] Estrazione dati di allineamento da: {actual_result_root}")
+
                 res_definitivo = compute_metrics(
-                    raw_root, result_root, f"ID_{i}", fps_val,
+                    raw_root=raw_root, 
+                    result_root=actual_result_root, 
+                    id_name=f"ID_{i}", 
+                    fps=fps_val,
                     offset_mode_override="normal",
                     energy_data=None, 
-                    save_to_csv=False
+                    save_to_csv=False,
+                    test_dir=test_dir
                 )
                 
                 # Stampa del report delle metriche fisiche/geometriche del modello

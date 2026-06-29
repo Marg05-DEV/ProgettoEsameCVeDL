@@ -3,7 +3,7 @@ visualsync/data/
 vissync/
 visualsync/vggt_output/
 visualsync/tracks/
-visualsync/results/
+visualsync/results*/
 visualsync/custom_out/
 visualsync/src/__pycache__/
 visualsync/src/custom_scripts/__pycache__/
