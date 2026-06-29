@@ -930,7 +930,7 @@ Questo script serve per elaborare le durate dei video del dataset per recuperare
 
 `v3`: Nella terza versione si è cercato di risolvere il problema che ha afflitto il calcolo del gt per l'`ID_4` (come descritto nella rispettiva esecuzione). Si è pensato che la staticità dei video nei primi secondi poteva far risultare uguali tanti frame e quindi indurre l'errore nel calcolo del gt. Quindi si è preso come frame da confrontare quello di un istante di tempo più avanti (dove c'è più probabilità che ci sia movimento). Inoltre si è tolta la tolleranza dell'errore medio visto che si confrontano gli stessi video tagliati, l'errore tra lo stesso frame dovrebbe essere 0. L'errore per l'ID_4 sembra essersi ridotto ma persiste ugualmente. Si prevedono altre migliorie per eliminare l'errore
 
-`v4`:
+`v4`: Nella quarta versione abbiamo cambiato l'idea. non cerchiamo più di ricercare un frame del video sincronizzato nei video originali ma cerchiamo nei video originali la differenza tra due frame così da ricercare la "dinamica" del video. Per ottimizzare questa ricerca prima di tutto ricerchiamo un grande cambiamento, cioè una differenza tra due frame che sia ricca di differenze di pixel. In questo modo si aumenta la possibilità che questa sia univoca all'interno di un video e che non si ripeta. Testando il codice notimao che è molto preciso tranne per l'ID_4 che presenta i soliti problemi
 
 Questo script mette a disposizione delle funzioni che poi verranno utilizzate dal prossimo script che servirà per il calcolo delle metriche. Inoltre è comunque possibile eseguirlo per stampare sul terminale i dati (durate, offsets, ...) di alcuni gruppi di video. Si può eseguire con il comando come nel seguente esempio:
 ```bash
@@ -977,107 +977,197 @@ python src/custom_scripts/run_full_validation.py
 
 
 ## RISULTATI:
-[]
+
+### Offset-Range a 40
 - ID_0, 15-30, 10fps
   ```text
   =========================================================================
-    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_0 (@ 10.0 FPS)
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_0 (@ 10.0 FPS)
   =========================================================================
-  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
-      Vista TOP  | GT: +0.77s (+7.7 f) | Pred: +11.0 f | Errore: 333.33 ms
-      Vista FPV  | GT: -1.05s (-10.5 f) | Pred: -24.0 f | Errore: 1347.23 ms
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: +0.77s (+7.7 f) | Pred: +7.0 f | Errore: 66.67 ms
+    FPV  | GT: -1.05s (-10.5 f) | Pred: +24.0 f | Errore: 3452.77 ms
 
   [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
-      Errore Medio (Mean Error):      840.28 ms
-      Errore Mediano (Median Error):   840.28 ms
-      Accuratezza @ 100ms (A@100ms):   0.0%
-      Accuratezza @ 500ms (A@500ms):   50.0%
-      Area Sotto la Curva (AUC):       0.5797
+    Errore Medio (Mean Error):     1759.72 ms
+    Errore Mediano (Median Error):  1759.72 ms
+    Accuratezza @ 100ms (A@100ms): 50.0%
+    Accuratezza @ 500ms (A@500ms): 50.0%
+    Area Sotto la Curva (AUC):     0.4834
   =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_0            | 3536.07 s    | 0.2820          | 0.093268
+  =======================================================
   ```
 
-- ID_0, 30-45, 10fps
-  ```text
-  =========================================================================                                                                                             
-    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_0 (@ 10.0 FPS)                                                                                                        
-  =========================================================================                                                                                             
-  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):                                                                                                     
-      Vista TOP  | GT: +0.77s (+7.7 f) | Pred: -23.0 f | Errore: 3066.67 ms                                                                                            
-      Vista FPV  | GT: -1.05s (-10.5 f) | Pred: -4.0 f | Errore: 652.77 ms                                                                                             
-                                                                                                                                                                        
-  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):                                                                                                                     
-      Errore Medio (Mean Error):      1859.72 ms                                                                                                                       
-      Errore Mediano (Median Error):   1859.72 ms
-      Accuratezza @ 100ms (A@100ms):   0.0%
-      Accuratezza @ 500ms (A@500ms):   0.0%
-      Area Sotto la Curva (AUC):       0.3369
-  =========================================================================
-  ```
+
 
 - ID_1, 15-30, 10fps
   ```text
+  =========================================================================
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_1 (@ 10.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: +0.43s (+4.3 f) | Pred: -20.0 f | Errore: 2433.33 ms
+    FPV  | GT: -1.22s (-12.2 f) | Pred: -12.0 f | Errore: 18.13 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+    Errore Medio (Mean Error):     1225.73 ms
+    Errore Mediano (Median Error):  1225.73 ms
+    Accuratezza @ 100ms (A@100ms): 50.0%
+    Accuratezza @ 500ms (A@500ms): 50.0%
+    Area Sotto la Curva (AUC):     0.4954
+  =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_1            | 2854.59 s    | 0.2000          | 0.066130
+  =======================================================
   ```
 
 - ID_2, 15-30, 15fps
   ```text
+  =========================================================================
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_2 (@ 15.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: +0.77s (+11.5 f) | Pred: +33.0 f | Errore: 1433.33 ms
+    FPV  | GT: -2.19s (-32.8 f) | Pred: -7.0 f | Errore: 1720.37 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+    Errore Medio (Mean Error):     1576.85 ms
+    Errore Mediano (Median Error):  1576.85 ms
+    Accuratezza @ 100ms (A@100ms): 0.0%
+    Accuratezza @ 500ms (A@500ms): 0.0%
+    Area Sotto la Curva (AUC):     0.2115
+  =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_2            | 4971.86 s    | 0.3893          | 0.128751
+  =======================================================
   ```
 
 - ID_3, 30-40, 20fps
   ```text
   =========================================================================
-    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_3 (@ 20.0 FPS)
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_3 (@ 20.0 FPS)
   =========================================================================
-  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
-      Vista TOP  | GT: +1.30s (+26.0 f) | Pred: -21.0 f | Errore: 2350.00 ms
-      Vista FPV  | GT: -0.69s (-13.7 f) | Pred: -25.0 f | Errore: 563.23 ms
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: +1.30s (+26.0 f) | Pred: +17.0 f | Errore: 450.00 ms
+    FPV  | GT: -0.69s (-13.7 f) | Pred: +37.0 f | Errore: 2536.77 ms
 
   [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
-      Errore Medio (Mean Error):      1456.62 ms
-      Errore Mediano (Median Error):   1456.62 ms
-      Accuratezza @ 100ms (A@100ms):   0.0%
-      Accuratezza @ 500ms (A@500ms):   0.0%
-      Area Sotto la Curva (AUC):       0.3591
+    Errore Medio (Mean Error):     1493.38 ms
+    Errore Mediano (Median Error):  1493.38 ms
+    Accuratezza @ 100ms (A@100ms): 0.0%
+    Accuratezza @ 500ms (A@500ms): 50.0%
+    Area Sotto la Curva (AUC):     0.3876
   =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_3            | 4707.21 s    | 0.3524          | 0.116552
+  =======================================================
   ```
 
-- ID_4, 30-40, 25fps
+- ID_4, 30-40, 25fps **PROBLEMATICO come SEMPRE**
   ```text
+  =========================================================================
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_4 (@ 25.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: -5.73s (-143.3 f) | Pred: -36.0 f | Errore: 4293.33 ms
+    FPV  | GT: -8.02s (-200.5 f) | Pred: +17.0 f | Errore: 8701.73 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+    Errore Medio (Mean Error):     6497.53 ms
+    Errore Mediano (Median Error):  6497.53 ms
+    Accuratezza @ 100ms (A@100ms): 0.0%
+    Accuratezza @ 500ms (A@500ms): 0.0%
+    Area Sotto la Curva (AUC):     0.0000
+  =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_4            | 5987.92 s    | 0.4990          | 0.165014
+  =======================================================
   ```
 
-- ID_5, 30-40, 25fps
+- ID_5, 30-40, 25fps 
   ```text
-  =========================================================================                                                                                             
-    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_5 (@ 25.0 FPS)                                                                                                        
-  =========================================================================                                                                                             
-  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):                                                                                                     
-      Vista TOP  | GT: +0.87s (+21.7 f) | Pred: +13.0 f | Errore: 346.67 ms                                                                                            
-      Vista FPV  | GT: -1.42s (-35.5 f) | Pred: +0.0 f | Errore: 1419.67 ms                                                                                            
-                                                                                                                                                                        
-  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):                                                                                                                     
-      Errore Medio (Mean Error):      883.17 ms                                                                                                                        
-      Errore Mediano (Median Error):   883.17 ms                                                                                                                       
-      Accuratezza @ 100ms (A@100ms):   0.0%                                                                                                                            
-      Accuratezza @ 500ms (A@500ms):   50.0%                                                                                                                           
-      Area Sotto la Curva (AUC):       0.5585                                                                                                                          
-  ========================================================================= 
+  =========================================================================
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_5 (@ 25.0 FPS)
+  =========================================================================
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: +0.87s (+21.7 f) | Pred: +13.0 f | Errore: 346.67 ms
+    FPV  | GT: -1.42s (-35.5 f) | Pred: +1.0 f | Errore: 1459.67 ms
+
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
+    Errore Medio (Mean Error):     903.17 ms
+    Errore Mediano (Median Error):  903.17 ms
+    Accuratezza @ 100ms (A@100ms): 0.0%
+    Accuratezza @ 500ms (A@500ms): 50.0%
+    Area Sotto la Curva (AUC):     0.5485
+  =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_5            | 6825.14 s    | 0.5517          | 0.182457
+  =======================================================
   ```
 
 - ID_6, 30-38, 30fps
   ```text
   =========================================================================
-    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_6 (@ 30.0 FPS)
+   REPORT DI VALUTAZIONE SCIENTIFICA (LOGICA UNIFICATA): ID_6 (@ 30.0 FPS)
   =========================================================================
-  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):
-      Vista TOP  | GT: +0.90s (+27.0 f) | Pred: -25.0 f | Errore: 1733.33 ms
-      Vista FPV  | GT: -0.59s (-17.6 f) | Pred: +25.0 f | Errore: 1418.90 ms
+  [A] CONFRONTO DIRETTO DEI FRAME:
+    TOP  | GT: +0.90s (+27.0 f) | Pred: +40.0 f | Errore: 433.33 ms
+    FPV  | GT: -0.59s (-17.6 f) | Pred: -38.0 f | Errore: 681.10 ms
 
   [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):
-      Errore Medio (Mean Error):      1576.12 ms
-      Errore Mediano (Median Error):   1576.12 ms
-      Accuratezza @ 100ms (A@100ms):   0.0%
-      Accuratezza @ 500ms (A@500ms):   0.0%
-      Area Sotto la Curva (AUC):       0.2120
+    Errore Medio (Mean Error):     557.22 ms
+    Errore Mediano (Median Error):  557.22 ms
+    Accuratezza @ 100ms (A@100ms): 0.0%
+    Accuratezza @ 500ms (A@500ms): 50.0%
+    Area Sotto la Curva (AUC):     0.7212
   =========================================================================
+
+
+  =======================================================
+  RIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)
+  =======================================================
+  ESPERIMENTO     | TEMPO        | ENERGIA (kWh)   | EMISSIONI (kg CO2)
+  -------------------------------------------------------
+  ID_6            | 7098.81 s    | 0.6128          | 0.202671
+  =======================================================
   ```
 
 - ID_7, 30-38, 30fps
@@ -1095,5 +1185,39 @@ python src/custom_scripts/run_full_validation.py
       Accuratezza @ 100ms (A@100ms):   0.0%
       Accuratezza @ 500ms (A@500ms):   0.0%
       Area Sotto la Curva (AUC):       0.0000
+  =========================================================================
+  ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  - ID_0, 30-45, 10fps **NON RIFATTA LA SUA ESECUZIONE**
+  ```text
+  =========================================================================                                                                                             
+    REPORT DI VALUTAZIONE SCIENTIFICA REALE: ID_0 (@ 10.0 FPS)                                                                                                        
+  =========================================================================                                                                                             
+  [A] CONFRONTO DIRETTO DELLE VISTE (Rispetto al pivot TPV = 0.0):                                                                                                     
+      Vista TOP  | GT: +0.77s (+7.7 f) | Pred: -23.0 f | Errore: 3066.67 ms                                                                                            
+      Vista FPV  | GT: -1.05s (-10.5 f) | Pred: -4.0 f | Errore: 652.77 ms                                                                                             
+                                                                                                                                                                        
+  [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):                                                                                                                     
+      Errore Medio (Mean Error):      1859.72 ms                                                                                                                       
+      Errore Mediano (Median Error):   1859.72 ms
+      Accuratezza @ 100ms (A@100ms):   0.0%
+      Accuratezza @ 500ms (A@500ms):   0.0%
+      Area Sotto la Curva (AUC):       0.3369
   =========================================================================
   ```

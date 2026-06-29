@@ -4,6 +4,7 @@ import sys
 import time
 import re
 from codecarbon import EmissionsTracker
+import pandas as pd
 
 # Importazione integrata dei componenti scientifici di estimate_metrics
 try:
@@ -79,8 +80,8 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
             #f"CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --track_root \"$TRACK_ROOT\" --result_name1 \"{top_name}\" --result_name2 \"{fpv_name}\" --group_prefix \"$GROUP\" --mask_prefix \"$MASK_PREFIX\" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096"
         ]),
         ("Passo 11: VisualSync Offset Estimation", [
-            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{tpv_name}\" --offset_range 25 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
-            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{tpv_name}\" --video2_name \"{fpv_name}\" --offset_range 25 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt"
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{tpv_name}\" --offset_range 30 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{tpv_name}\" --video2_name \"{fpv_name}\" --offset_range 30 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt"
             #f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{fpv_name}\" --offset_range 25 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt"
         ]),
         ("Passo 12: Collect offset & create merged video", [
@@ -100,7 +101,7 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
         print("step_name", step_name)
         print("current_step_num", current_step_num)
 
-        # --- MODIFICA CHIRURGICA ESCLUSIVA AL FOR PER IL PASSO 12 ---
+        
         if current_step_num == 12:
             raw_root = env.get("RAW_ROOT")
             result_root = env.get("RESULT_ROOT")
@@ -113,22 +114,22 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
             if not run_command(cmd_normal, env=env, description=f"{step_name} [Normal] -> {cmd_normal[:50]}..."):
                 return False
             res_normal = compute_metrics(raw_root, result_root, id_name, fps, save_to_csv=False)
-            err_normal = res_normal["metrics"]["mean_error_ms"] if res_normal["success"] else float('inf')
+            auc_normal = res_normal["metrics"]["AUC"] if res_normal["success"] else float('inf')
             
             # 2. Esecuzione del secondo comando della lista (Configurazione Invertita con Flip)
             cmd_flipped = commands[1]
             if not run_command(cmd_flipped, env=env, description=f"{step_name} [Flipped] -> {cmd_flipped[:50]}..."):
                 return False
             res_flipped = compute_metrics(raw_root, result_root, id_name, fps, save_to_csv=False)
-            err_flipped = res_flipped["metrics"]["mean_error_ms"] if res_flipped["success"] else float('inf')
+            auc_flipped = res_flipped["metrics"]["AUC"] if res_flipped["success"] else float('inf')
             
             # Valutazione scientifica e ripristino dell'ambiente vincente
-            if err_normal <= err_flipped:
-                print(f"\n[+] Scelta Ottimale: NORMAL ({err_normal:.2f}ms <= {err_flipped:.2f}ms)")
+            if auc_normal >= auc_flipped:
+                print(f"\n[+] Scelta Ottimale: NORMAL ({auc_normal:.2f} >= {auc_flipped:.2f})")
                 run_command(cmd_normal, env=env, description="Ripristino configurazione Normal")
                 os.environ["VS_LAST_OFFSET_MODE"] = "normal"
             else:
-                print(f"\n[+] Scelta Ottimale: FLIPPED ({err_flipped:.2f}ms < {err_normal:.2f}ms)")
+                print(f"\n[+] Scelta Ottimale: FLIPPED ({auc_flipped:.2f} > {auc_normal:.2f})")
                 os.environ["VS_LAST_OFFSET_MODE"] = "flipped"
         else:
             # Esecuzione standard lineare per tutti gli altri passaggi della pipeline
@@ -138,73 +139,25 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
                     
     return True
 
-if __name__ == "__main__":
-    try:
-        start_id = int(input("ID di partenza: "))
-        end_id = int(input("ID di arrivo: "))
-        start_sec, end_sec, fps = int(input("Start sec: ")), int(input("End sec: ")), int(input("FPS: "))
 
-        start_step_input = input("Inserisci il numero del passo da cui ripartire (premi invio per iniziare dall'inizio): ")
-        start_step = int(start_step_input) if start_step_input.strip() else None
-    except ValueError:
-        print("Errore: Input non validi.")
-        sys.exit(1)
 
-    results = []
-    for i in range(start_id, end_id + 1):
-        print(f"\n{'='*40}\nAVVIO PIPELINE + EMISSIONI PER ID_{i}\n{'='*40}")
-        
-        tracker = EmissionsTracker(
-            project_name=f"ID_{i}_Execution",
-            save_to_file=False,
-            log_level="error"
-        )
-        
-        tracker.start()
-        t0 = time.time()
-        
-        os.environ["VS_LAST_OFFSET_MODE"] = "undefined"
-        success = run_pipeline(i, start_sec, end_sec, fps, start_step)
-        
-        elapsed_time = time.time() - t0
-        emissions = tracker.stop()
-        
-        energy_kwh = tracker._total_energy.kWh if hasattr(tracker, '_total_energy') else 0.0
-        
-        if success:
-            status_str = f"{elapsed_time:.2f} s"
-            print(f"\n[+] ID_{i} COMPLETATO CON SUCCESSO:")
-            print(f"    -> Tempo di esecuzione: {status_str}")
-            print(f"    -> Energia Consumata:   {energy_kwh:.4f} kWh")
-            print(f"    -> Emissioni Stimate:   {emissions:.6f} kg CO2")
-            
-            # Sincronizzazione persistente sul report delle metriche a valle del passo 12
-            if start_step is None or start_step <= 12:
-                pipeline_vars = load_vars_from_bash(i, start_sec, end_sec, fps)
-                raw_root = pipeline_vars.get("RAW_ROOT")
-                result_root = pipeline_vars.get("RESULT_ROOT")
-                id_name = f"ID_{i}"
-                
-                energy_dict = {
-                    "duration_seconds": elapsed_time,
-                    "energy_kwh": energy_kwh,
-                    "emissions_kg": emissions
-                }
-                
-                res_definitivo = compute_metrics(
-                    raw_root, result_root, id_name, float(fps),
-                    offset_mode_override=os.environ.get("VS_LAST_OFFSET_MODE", "normal"),
-                    energy_data=energy_dict,
-                    save_to_csv=True
-                )
-                print_metrics_report(res_definitivo)
-        else:
-            status_str = "FALLITO"
-            print(f"\n[-] ID_{i} FALLITO durante l'esecuzione.")
-            
-        results.append((f"ID_{i}", status_str, energy_kwh, emissions))
+def print_execution_summary(id_str, status, elapsed_time, energy_kwh, emissions):
+    """
+    Funzione centralizzata per stampare i dati computazionali ed ecologici di esecuzione.
+    """
+    if status == "FALLITO":
+        print(f"\n[-] {id_str} FALLITO durante l'esecuzione.")
+    else:
+        print(f"\n[+] {id_str} COMPLETATO CON SUCCESSO:")
+        print(f"    -> Tempo di esecuzione: {elapsed_time:.2f} s")
+        print(f"    -> Energia Consumata:   {energy_kwh:.4f} kWh")
+        print(f"    -> Emissioni Stimate:   {emissions:.6f} kg CO2")
 
-    # --- MODIFICA DELLA PARTE PER IL PRINT TOTALE ---
+
+def print_final_table(results):
+    """
+    Stampa la tabella riepilogativa finale per la sessione di esecuzione corrente.
+    """
     print("\n" + "="*55 + "\nRIEPILOGO FINALE (TEMPI ED ENERGIA A SCHERMO)\n" + "="*55)
     print(f"{'ESPERIMENTO':<15} | {'TEMPO':<12} | {'ENERGIA (kWh)':<15} | {'EMISSIONI (kg CO2)'}")
     print("-"*55)
@@ -214,3 +167,279 @@ if __name__ == "__main__":
         else:
             print(f"{g:<15} | {t:<12} | {eng:<15.4f} | {ems:.6f}")
     print("="*55 + "\n")
+
+
+def load_run_settings(test_dir=None):
+    """
+    Carica il CSV di configurazione centralizzando la gestione degli errori.
+    """
+    if dir:
+    csv_path = os.path.join("custom_out", "run_setting.csv")
+    if not os.path.exists(csv_path):
+        print(f"Errore critico: Il file '{csv_path}' non esiste.")
+        sys.exit(1)
+    try:
+        df = pd.read_csv(csv_path)
+        # Uniformiamo l'indice indipendentemente dal case (id o ID)
+        df.columns = [c.lower() for c in df.columns]
+        if 'id' in df.columns:
+            df.set_index('id', inplace=True)
+        else:
+            print("Errore: Il CSV run_setting.csv deve contenere una colonna 'id' o 'ID'.")
+            sys.exit(1)
+        return df
+    except Exception as e:
+        print(f"Errore nel parsing del CSV di configurazione: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    print("="*50)
+    print("      VISUALSYNC EXPERIMENTAL PIPELINE MANAGER      ")
+    print("="*50)
+    print("Seleziona la modalità di esecuzione:")
+    print("1) Modalità Standard (Input manuale dei parametri temporali)")
+    print("2) Modalità Batch da CSV (Configurazione da custom_out/run_setting.csv)")
+    print("3) Modalità Solo Report Interattiva (Visualizzazione metriche e consumi storici)")
+    
+    scelta = input("\nInserisci il numero della modalità (1/2/3): ").strip()
+    
+    if scelta not in ["1", "2", "3"]:
+        print("Errore: Selezione non valida.")
+        sys.exit(1)
+        
+    # Caricamento preventivo del CSV se richiesto dalle modalità 2 o 3
+    df_settings = load_run_settings() if scelta in ["2", "3"] else None
+
+    # ========================================================================
+    # BLOCCO DI SINOPSIS / INPUT (GESTIONE DELLE VARIABILI DI ESECUZIONE)
+    # ========================================================================
+    if scelta in ["1", "2"]:
+        # Inizializzazione dizionario per mappare i parametri per ogni ID nel range
+        execution_batch = {}
+        
+        if scelta == "1":
+            try:
+                start_id = int(input("ID di partenza: "))
+                end_id = int(input("ID di arrivo: "))
+                start_sec = int(input("Start sec: "))
+                end_sec = int(input("End sec: "))
+                fps = int(input("FPS: "))
+                
+                start_step_input = input("Inserisci il numero del passo da cui ripartire (premi invio per iniziare dall'inizio): ")
+                start_step = int(start_step_input) if start_step_input.strip() else None
+                
+                # Popoliamo il dizionario con i medesimi parametri per tutto il range scelto manualmente
+                for i in range(start_id, end_id + 1):
+                    execution_batch[i] = {
+                        "start_sec": start_sec,
+                        "end_sec": end_sec,
+                        "fps": fps,
+                        "start_step": start_step
+                    }
+            except ValueError:
+                print("Errore: Input non validi.")
+                sys.exit(1)
+                
+        elif scelta == "2":
+            try:
+                start_id = int(input("ID di partenza (da CSV): "))
+                end_id = int(input("ID di arrivo (da CSV): "))
+                # Vincolo del Mentor: Niente richiesta step, si parte da 0 (None o 0 in base alla logica di run_pipeline)
+                start_step = 0 
+            except ValueError:
+                print("Errore: Input ID non validi.")
+                sys.exit(1)
+                
+            for i in range(start_id, end_id + 1):
+                # Gestione flessibile sia per formati interi che stringa ("ID_X" o X) nel CSV
+                str_key = f"ID_{i}"
+                if str_key in df_settings.index:
+                    row = df_settings.loc[str_key]
+                elif i in df_settings.index:
+                    row = df_settings.loc[i]
+                else:
+                    print(f"[!] Warning: ID {i} (o ID_{i}) non trovato nel file CSV. Verrà saltato.")
+                    continue
+                
+                if isinstance(row, pd.DataFrame):
+                    row = row.iloc[0]
+                    
+                execution_batch[i] = {
+                    "start_sec": int(row["start_sec"]),
+                    "end_sec": int(row["end_sec"]),
+                    "fps": int(row["fps"]),
+                    "start_step": start_step
+                }
+
+        # ========================================================================
+        # CICLO UNICO DI ESECUZIONE (Fase 1 e Fase 3 della Pipeline)
+        # ========================================================================
+        results = []
+        for i, params in execution_batch.items():
+            print(f"\n{'='*40}\nAVVIO PIPELINE + EMISSIONI PER ID_{i}\n{'='*40}")
+            
+            # Isolamento atomico dei consumi energetici
+            tracker = EmissionsTracker(
+                project_name=f"ID_{i}_Execution",
+                save_to_file=False,
+                log_level="error"
+            )
+            
+            tracker.start()
+            t0 = time.time()
+            
+            os.environ["VS_LAST_OFFSET_MODE"] = "undefined"
+            success = run_pipeline(i, params["start_sec"], params["end_sec"], params["fps"], params["start_step"])
+            
+            elapsed_time = time.time() - t0
+            emissions = tracker.stop()
+            energy_kwh = tracker._total_energy.kWh if hasattr(tracker, '_total_energy') else 0.0
+            
+            if success:
+                status_str = f"{elapsed_time:.2f} s"
+                print_execution_summary(f"ID_{i}", status_str, elapsed_time, energy_kwh, emissions)
+                
+                # Esegui calcolo metriche se applicabile
+                if params["start_step"] is None or params["start_step"] <= 12:
+                    pipeline_vars = load_vars_from_bash(i, params["start_sec"], params["end_sec"], params["fps"])
+                    raw_root = pipeline_vars.get("RAW_ROOT")
+                    result_root = pipeline_vars.get("RESULT_ROOT")
+                    
+                    energy_dict = {
+                        "duration_seconds": elapsed_time,
+                        "energy_kwh": energy_kwh,
+                        "emissions_kg": emissions
+                    }
+                    
+                    res_definitivo = compute_metrics(
+                        raw_root, result_root, f"ID_{i}", float(params["fps"]),
+                        offset_mode_override=os.environ.get("VS_LAST_OFFSET_MODE", "normal"),
+                        energy_data=energy_dict,
+                        save_to_csv=True
+                    )
+                    print_metrics_report(res_definitivo)
+            else:
+                status_str = "FALLITO"
+                print_execution_summary(f"ID_{i}", status_str, elapsed_time, energy_kwh, emissions)
+                
+            results.append((f"ID_{i}", status_str, energy_kwh, emissions))
+            
+        print_final_table(results)
+
+    # ------------------------------------------------------------------------
+    # MODALITÀ 3: SOLO REPORT INTERATTIVO (WHILE LOOP CON LOOKUP AUTOMATICO)
+    # ------------------------------------------------------------------------
+    elif scelta == "3":
+        print("\n" + "="*50 + "\nMODALITÀ SOLO REPORT INTERATTIVA\n" + "="*50)
+        
+        while True:
+            id_input = input("\nInserisci l'ID numerico da ispezionare (es. 2, oppure 'q' per uscire): ").strip()
+            if id_input.lower() in ['q', 'exit', 'esci']:
+                print("Uscita dalla modalità report.")
+                break
+                
+            try:
+                i = int(id_input)
+            except ValueError:
+                print("Errore: Inserisci un numero intero valido.")
+                continue
+                
+            # Verifica della corrispondenza delle chiavi nel DataFrame (gestisce sia "ID_2" che 2)
+            str_key = f"ID_{i}"
+            row = None
+            if str_key in df_settings.index:
+                row = df_settings.loc[str_key]
+            elif i in df_settings.index:
+                row = df_settings.loc[i]
+                
+            if row is None:
+                print(f"[-] Errore: L'ID_{i} non è presente in 'run_setting.csv'. Impossibile recuperare i metadati temporali.")
+                continue
+                
+            if isinstance(row, pd.DataFrame):
+                row = row.iloc[0]
+                
+            # Recupero automatico dei parametri dal CSV senza interazione dell'utente
+            fps_val = float(row["fps"])
+            start_sec_val = int(row["start_sec"])
+            end_sec_val = int(row["end_sec"])
+            
+            print(f"\n[Dati Configurazione CSV] ID_{i} -> FPS: {fps_val}, Start: {start_sec_val}s, End: {end_sec_val}s")
+            
+            try:
+                # Eseguiamo il lookup di load_vars_from_bash per trovare i path corretti di output del modello
+                pipeline_vars = load_vars_from_bash(i, start_sec_val, end_sec_val, int(fps_val))
+                raw_root = pipeline_vars.get("RAW_ROOT")
+                result_root = pipeline_vars.get("RESULT_ROOT")
+                
+                # Richiamiamo compute_metrics impostando save_to_csv=False per non sovrascrivere
+                # i consumi storici reali precedentemente calcolati in fase di run.
+                res_definitivo = compute_metrics(
+                    raw_root, result_root, f"ID_{i}", fps_val,
+                    offset_mode_override="normal",
+                    energy_data=None, 
+                    save_to_csv=False
+                )
+                
+                # Stampa del report delle metriche fisiche/geometriche del modello
+                print_metrics_report(res_definitivo)
+                
+                # Recupero dei dati computazionali storici direttamente da metrics_report.csv se presente
+                metrics_csv_path = os.path.join("custom_out", "metrics_report.csv")
+                if os.path.exists(metrics_csv_path):
+                    try:
+                        df_metrics_history = pd.read_csv(metrics_csv_path)
+                        
+                        # Uniformiamo i nomi delle colonne in minuscolo per evitare problemi di Case Sensitivity
+                        df_metrics_history.columns = [c.lower() for c in df_metrics_history.columns]
+                        
+                        # Definiamo le possibili stringhe identificative memorizzate (es: "ID_2" o "2")
+                        target_id_str = f"ID_{i}"
+                        target_id_int = i
+                        
+                        # Troviamo la colonna usata come chiave primaria (solitamente 'id' o 'experiment')
+                        id_col = None
+                        for col in ['id', 'experiment', 'id_name']:
+                            if col in df_metrics_history.columns:
+                                id_col = col
+                                break
+                        
+                        if id_col is not None:
+                            # Filtriamo il DataFrame per trovare la riga corrispondente al nostro ID
+                            # Gestiamo sia il caso in cui nel CSV sia salvato come stringa "ID_X" sia come intero X
+                            row_match = df_metrics_history[
+                                (df_metrics_history[id_col].astype(str) == target_id_str) | 
+                                (df_metrics_history[id_col].astype(str) == str(target_id_int))
+                            ]
+                            
+                            if not row_match.empty:
+                                # Se ci sono più righe (es. test ripetuti), prendiamo l'ultima esecuzione (.iloc[-1])
+                                target_row = row_match.iloc[-1]
+                                
+                                h_time = target_row['duration_seconds'] if "duration_seconds" in target_row else 0.0
+                                h_energy = target_row['energy_kwh'] if "energy_kwh" in target_row else 0.0
+                                h_co2 = target_row['emissions_kg'] if "emissions_kg" in target_row else 0.0
+                                
+                                status_format = f"{h_time:.2f} s"
+                                
+                                # Inviamo alla funzione delegata solo i dati estratti per il rispettivo ID
+                                print_final_table([(f"ID_{i}", status_format, h_energy, h_co2)])
+                            else:
+                                print(f" [!] Nota: ID_{i} non trovato all'interno del file {metrics_csv_path}.")
+                        else:
+                            print(f" [!] Errore: Colonna ID non identificata nel CSV. Colonne presenti: {list(df_metrics_history.columns)}")
+                            
+                    except Exception as ex_csv:
+                        print(f" [!] Nota: Errore nel parsing dei consumi storici da metrics_report.csv ({ex_csv})")
+                else:
+                    print(f" [!] Avviso: File {metrics_csv_path} non trovato. Dati di consumo storici non disponibili.")
+                    
+            except Exception as e:
+                print(f"[-] Errore critico durante il recupero dei dati per ID_{i}: {e}")
+                
+            # Chiediamo esplicitamente se continuare, per mantenere pulito il terminale
+            continua = input("\nVuoi esaminare un altro ID? (s/n): ").strip().lower()
+            if continua not in ['s', 'si', 'y', 'yes', '']:
+                print("Uscita dalla modalità report.")
+                break

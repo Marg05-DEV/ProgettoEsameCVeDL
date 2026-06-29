@@ -169,8 +169,8 @@ def print_metrics_report(res: dict[str, Any]):
     print("\n [B] METRICHE COMPLESSIVE DEL PAPER (VisualSync):")
     print(f"   Errore Medio (Mean Error):     {metrics['mean_error_ms']:.2f} ms")
     print(f"   Errore Mediano (Median Error):  {metrics['median_error_ms']:.2f} ms")
-    print(f"   Accuratezza @ 100ms (A@100ms): {metrics['A@100ms']:.1f}%")
-    print(f"   Accuratezza @ 500ms (A@500ms): {metrics['A@500ms']:.1f}%")
+    print(f"   Accuratezza @ 100ms (A@100ms): {metrics['A@100ms']*100:.1f}%")
+    print(f"   Accuratezza @ 500ms (A@500ms): {metrics['A@500ms']*100:.1f}%")
     print(f"   Area Sotto la Curva (AUC):     {metrics['AUC']:.4f}")
     print("=========================================================================\n")
 
@@ -211,8 +211,8 @@ def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str,
     metrics_result = {
         "mean_error_ms": mean_error, 
         "median_error_ms": median_error, 
-        "A@100ms": a_100, 
-        "A@500ms": a_500, 
+        "A@100ms": a_100/100, 
+        "A@500ms": a_500/100, 
         "AUC": auc
     }
     

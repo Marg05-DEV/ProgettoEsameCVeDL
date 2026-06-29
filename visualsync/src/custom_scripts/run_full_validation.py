@@ -30,10 +30,12 @@ def main():
         sys.exit(1)
 
     fps_esperimento = float(fps_env)
+    print("ciao", group_id)
     id_dir = Path(raw_root) / group_id
     
     # IMPOSTAZIONE STRATEGICA: Salviamo nella cartella corrente con il nome fisso richiesto
     output_png = Path("sync_interactive_check.png")
+    output_csv = Path("custom_out/ground_truths.csv")
 
     print("\n" + "="*75)
     print(f" PIPELINE DI VALIDAZIONE AUTOMATICA: {group_id} (@ {fps_esperimento} FPS)")
@@ -41,10 +43,11 @@ def main():
 
     # 2. FASE 1: Calcolo automatico del Ground Truth con l'algoritmo ROI + Soglia 0.6
     print("[*] Fase 1: Calcolo del Ground Truth via Anchor Template Matching (ROI)...")
-    sync_data = gte.get_all_synchronization_data(raw_root, [group_id])
+    sync_data = gte.get_all_synchronization_data(raw_root, group_id)
+    gte.save_single_id_to_csv(group_id, sync_data, output_csv)
     
     # Estraiamo gli offset globali in secondi calcolati (TPV è il perno a 0.0)
-    gt_offsets_sec = sync_data[group_id]["global_offsets_secondi"]
+    gt_offsets_sec = sync_data["global_offsets_secondi"]
     
     print("\n>>> GROUND TRUTH RILEVATO (Rispetto al pivot TPV):")
     for view in ["TOP", "TPV", "FPV"]:
