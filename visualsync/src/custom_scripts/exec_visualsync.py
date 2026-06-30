@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import re
+import shutil
 from codecarbon import EmissionsTracker
 import pandas as pd
 
@@ -156,13 +157,12 @@ def purge_previous_outputs(env, group_id, start_sec, end_sec, fps):
     
     # Escludiamo RESULT_ROOT da questa lista
     folders_to_delete = [
-        os.path.join(env.get("DATA_ROOT", ""), f"{group_name}_cam_top_{suffix}"),
-        os.path.join(env.get("DATA_ROOT", ""), f"{group_name}_cam_tpv_{suffix}"),
-        os.path.join(env.get("DATA_ROOT", ""), f"{group_name}_fpv_{suffix}"),
-        os.path.join(env.get("TRACK_ROOT", ""), group_name),
-        os.path.join("/app/Progetto/visualsync", "vggt_output", f"{group_name}_cam_top_{suffix}"),
-        os.path.join("/app/Progetto/visualsync", "vggt_output", f"{group_name}_cam_tpv_{suffix}"),
+        os.path.join(env.get("DATA_ROOT", "")),
+        os.path.join(env.get("TRACK_ROOT", "")),
+        os.path.join("vggt_output/vggt_poses/", f"{group_name}")
     ]
+
+    print(folders_to_delete)
     
     for folder in folders_to_delete:
         if os.path.exists(folder):
@@ -289,12 +289,17 @@ if __name__ == "__main__":
                 start_id = int(input("ID di partenza (da CSV): "))
                 end_id = int(input("ID di arrivo (da CSV): "))
                 # Vincolo del Mentor: Niente richiesta step, si parte da 0 (None o 0 in base alla logica di run_pipeline)
-                start_step = 0 
+                start_step = 0
             except ValueError:
                 print("Errore: Input ID non validi.")
                 sys.exit(1)
                 
             for i in range(start_id, end_id + 1):
+                if i == start_id:
+                    print("")
+                else:
+                    start_step = 0
+
                 # Gestione flessibile sia per formati interi che stringa ("ID_X" o X) nel CSV
                 str_key = f"ID_{i}"
                 if str_key in df_settings.index:
@@ -314,6 +319,7 @@ if __name__ == "__main__":
                     "fps": int(row["fps"]),
                     "start_step": start_step
                 }
+                print(execution_batch)
 
         # ========================================================================
         # CICLO UNICO DI ESECUZIONE (Fase 1 e Fase 3 della Pipeline)
@@ -345,37 +351,15 @@ if __name__ == "__main__":
 
                 pipeline_vars = load_vars_from_bash(i, params["start_sec"], params["end_sec"], params["fps"])
                 raw_root = pipeline_vars.get("RAW_ROOT")
-                result_root = pipeline_vars.get("RESULT_ROOT")
-                standard_result_root = pipeline_vars.get("RESULT_ROOT")  # Es: /app/Progetto/visualsync/result/ID_1
-            
-                # Identifichiamo la cartella madre di tutti i risultati (es: /app/Progetto/visualsync/result)
-                # e il nome della cartella specifica del gruppo (es: ID_1)
-                result_parent_dir = os.path.dirname(standard_result_root)
-                group_folder_name = os.path.basename(standard_result_root)
+                standard_result_root = pipeline_vars.get("RESULT_ROOT")  # Es: /app/Progetto/visualsync/result/ID_8
                 
-                actual_result_root = standard_result_root    
-                
-                if test_dir:
-                    # La cartella 'result' viene rinominata in 'results_test_1'
-                    workspace_dir = os.path.dirname(result_parent_dir)  # Es: /app/Progetto/visualsync
-                    new_result_parent_name = f"results_{test_dir}"       # Es: results_test_1
-                    new_result_parent_path = os.path.join(workspace_dir, new_result_parent_name)
-                    
-                    # Se la cartella 'result' standard esiste e non abbiamo ancora archiviato questo test
-                    if os.path.exists(result_parent_dir) and not os.path.exists(new_result_parent_path):
-                        try:
-                            os.rename(result_parent_dir, new_result_parent_path)
-                            print(f"[+] Archiviazione: Rinominalo '{result_parent_dir}' in '{new_result_parent_path}'")
-                        except Exception as e:
-                            print(f"[!] Errore durante la rinomina della cartella radice dei risultati: {e}")
-                            new_result_parent_path = result_parent_dir
-                    
-                    # Ricostruiamo il percorso corretto per compute_metrics dentro la nuova cartella archiviata
-                    actual_result_root = os.path.join(new_result_parent_path, group_folder_name)
+                # Memorizziamo i riferimenti della cartella result globale per usarli fuori dal ciclo
+                result_parent_dir = os.path.dirname(standard_result_root) # Es: /app/Progetto/visualsync/result
+                workspace_dir = os.path.dirname(result_parent_dir)         # Es: /app/Progetto/visualsync
 
-                # Esegui calcolo metriche se applicabile
+                # DURANTE IL CICLO: Leggiamo i dati direttamente dalla cartella standard "result"
+                # Perché non è ancora stata rinominata!
                 if params["start_step"] is None or params["start_step"] <= 12:
-                    
                     energy_dict = {
                         "duration_seconds": elapsed_time,
                         "energy_kwh": energy_kwh,
@@ -383,19 +367,43 @@ if __name__ == "__main__":
                     }
                     
                     res_definitivo = compute_metrics(
-                        raw_root, result_root, f"ID_{i}", float(params["fps"]),
+                        raw_root=raw_root, 
+                        result_root=standard_result_root,  # Legge da result/ID_8
+                        id_name=f"ID_{i}", 
+                        fps=float(params["fps"]),
                         offset_mode_override=os.environ.get("VS_LAST_OFFSET_MODE", "normal"),
                         energy_data=energy_dict,
                         save_to_csv=True,
-                        test_dir=test_dir
+                        test_dir=test_dir # Salva correttamente il CSV delle metriche in custom_out/test_dir/
                     )
-                    print_metrics_report(res_definitivo)
+                    
+                    if res_definitivo and "metrics" in res_definitivo:
+                        print_metrics_report(res_definitivo)
+                    else:
+                        print(f"[!] Errore nel calcolo delle metriche per ID_{i}")
             else:
                 status_str = "FALLITO"
                 print_execution_summary(f"ID_{i}", status_str, elapsed_time, energy_kwh, emissions)
                 
             results.append((f"ID_{i}", status_str, energy_kwh, emissions))
             
+        # ========================================================================
+        # FINE DEL CICLO FOR: ORA EFFETTUIAMO L'ARCHIVIAZIONE DELLA CARTELLA RESULT
+        # ========================================================================
+        if test_dir and 'result_parent_dir' in locals() and os.path.exists(result_parent_dir):
+            new_result_parent_name = f"results_{test_dir}"  # Es: results_test_1
+            new_result_parent_path = os.path.join(workspace_dir, new_result_parent_name)
+            
+            if not os.path.exists(new_result_parent_path):
+                try:
+                    os.rename(result_parent_dir, new_result_parent_path)
+                    print(f"\n[+] Archiviazione Finale: Rinominalo con successo '{result_parent_dir}' in '{new_result_parent_path}'")
+                except Exception as e:
+                    print(f"\n[!] Errore durante la rinomina finale della cartella result: {e}")
+            else:
+                print(f"\n[!] Avviso: La cartella di destinazione '{new_result_parent_path}' esiste già. Archiviazione saltata per evitare sovrascritture.")
+
+        # Stampa della tabella riassuntiva finale dei consumi
         print_final_table(results)
 
     # ------------------------------------------------------------------------
@@ -446,8 +454,11 @@ if __name__ == "__main__":
                 
                 # Se l'utente ha caricato un test specifico, cerchiamo gli offset in results_<test_dir>
                 if test_dir:
-                    parent_dir = os.path.dirname(standard_result_root)
-                    actual_result_root = os.path.join(parent_dir, f"results_{test_dir}")
+                    result_parent_dir = os.path.dirname(standard_result_root) # /app/Progetto/visualsync/result
+                    group_folder_name = os.path.basename(standard_result_root) # ID_1
+                    workspace_dir = os.path.dirname(result_parent_dir)         # /app/Progetto/visualsync
+                    
+                    actual_result_root = os.path.join(workspace_dir, f"results_{test_dir}", group_folder_name)
                 else:
                     actual_result_root = standard_result_root
                 

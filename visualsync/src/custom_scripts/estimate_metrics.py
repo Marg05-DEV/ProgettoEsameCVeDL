@@ -85,13 +85,14 @@ def load_gt_or_compute_fallback(raw_root: str | Path, id_name: str) -> Optional[
 
 
 def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_errors: dict[str, float], 
-                        offset_mode_override: Optional[str] = None, energy_data: Optional[dict[str, float]] = None):
+                        offset_mode_override: Optional[str] = None, energy_data: Optional[dict[str, float]] = None, test_dir: str = None):
     """
     Esegue l'Upsert delle metriche nel report CSV.
     Salvaguarda sia 'offset_mode' che i dati energetici di CodeCarbon da azzeramenti o sovrascritture.
     """
-    csv_path = Path("custom_out") / "metrics_report.csv"
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    base_output = os.path.join("custom_out", test_dir) if test_dir else "custom_out"
+    #os.makedirs(base_output, exist_ok=True)
+    csv_path = Path(os.path.join(base_output, "metrics_report.csv"))
     
     # Valori di fallback iniziali per record totalmente nuovi
     existing_offset_mode = "undefined" if offset_mode_override is None else offset_mode_override
@@ -152,6 +153,7 @@ def save_metrics_to_csv(id_name: str, metrics_dict: dict[str, float], views_erro
 
 
 def print_metrics_report(res: dict[str, Any]):
+    print(res)
     metrics = res["metrics"]
     dt = res["details"]
     
@@ -177,7 +179,7 @@ def print_metrics_report(res: dict[str, Any]):
 
 def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str, fps: float, 
                     max_auc_tau: float = 2000.0, offset_mode_override: Optional[str] = None, 
-                    energy_data: Optional[dict[str, float]] = None, save_to_csv: bool = True) -> dict[str, Any]:
+                    energy_data: Optional[dict[str, float]] = None, save_to_csv: bool = True, test_dir: str = None) -> dict[str, Any]:
     gt_sec = load_gt_or_compute_fallback(raw_root, id_name)
     if gt_sec is None:
         return {"success": False, "msg": f"Impossibile ricavare il Ground Truth per l'ID: {id_name}."}
@@ -217,7 +219,7 @@ def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str,
     }
     
     if save_to_csv:
-        save_metrics_to_csv(id_name, metrics_result, id_errors_ms, offset_mode_override, energy_data)
+        save_metrics_to_csv(id_name, metrics_result, id_errors_ms, offset_mode_override, energy_data, test_dir=test_dir)
     
     return {
         "success": True, "id_name": id_name, "fps": fps,
