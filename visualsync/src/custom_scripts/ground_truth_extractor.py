@@ -44,62 +44,123 @@ def find_synchronized_video(id_dir: Path, view: str) -> Optional[Path]:
 
 
 def find_exact_start_cut_seconds(orig_path: Path, sync_path: Path, max_search_seconds: float = 60.0) -> float:
+
     """
-    METODO 1: Identifica il punto di minimo assoluto della differenza visiva sulla ROI.
+    Trova l'istante di taglio iniziale identificando AUTOMATICAMENTE il picco di massimo
+    movimento nel video sincronizzato, usandolo come firma dinamica per il matching nell'originale.
     """
-    anchor_seconds = 10.0
-    
+    # =========================================================================
+    # FASE 1: RILEVAMENTO DEL PICCO DI MOVIMENTO NEL SINCRONIZZATO (Auto-Anchor)
+    # =========================================================================
     cap_sync = cv2.VideoCapture(str(sync_path))
     sync_fps = cap_sync.get(cv2.CAP_PROP_FPS) or 30.0
-    anchor_frame_sync = int(anchor_seconds * sync_fps)
+
+
+    # Analizziamo i primi 30 secondi del video sincronizzato per cercare l'azione
+    search_sync_frames = int(min(30.0 * sync_fps, cap_sync.get(cv2.CAP_PROP_FRAME_COUNT) - 5))
     
-    cap_sync.set(cv2.CAP_PROP_POS_FRAMES, anchor_frame_sync)
-    ret_s, frame_sync = cap_sync.read()
-    cap_sync.release()
+    motion_energies = []
+    ret, prev_f = cap_sync.read()
+    if not ret:
+        cap_sync.release()
+        return 0.0
+    gray_prev_s = cv2.cvtColor(prev_f, cv2.COLOR_BGR2GRAY)
     
-    if not ret_s:
+    # Scansione frame-by-frame per trovare il punto a massima energia cinetica
+    for idx in range(1, search_sync_frames):
+        ret, curr_f = cap_sync.read()
+        if not ret:
+            break
+        gray_curr_s = cv2.cvtColor(curr_f, cv2.COLOR_BGR2GRAY)
+        
+        # Sottrazione consecutiva (rimane acceso solo ciò che si muove)
+        diff = cv2.absdiff(gray_curr_s, gray_prev_s)
+        energy = np.mean(diff)
+        motion_energies.append((energy, idx))
+        gray_prev_s = gray_curr_s
+        
+    if not motion_energies:
+        cap_sync.release()
         return 0.0
         
-    gray_sync = cv2.cvtColor(frame_sync, cv2.COLOR_BGR2GRAY)
-    gray_sync = cv2.resize(gray_sync, (0, 0), fx=0.5, fy=0.5)
-    h, w = gray_sync.shape[:2]
+    # Isoliamo il frame di picco assoluto e convertiamo in secondi
+    best_sync_energy, anchor_frame_sync = max(motion_energies, key=lambda x: x[0])
+    anchor_seconds = anchor_frame_sync / sync_fps
     
-    start_y, end_y = int(h * 0.2), int(h * 0.8)
-    start_x, end_x = int(w * 0.2), int(w * 0.8)
-    roi_sync = gray_sync[start_y:end_y, start_x:end_x]
-    
+    # Estraiamo la firma del movimento in quel picco usando una finestra stabile di 3 frame
+    frame_idx_b = anchor_frame_sync + 3
+    cap_sync.set(cv2.CAP_PROP_POS_FRAMES, anchor_frame_sync)
+    _, frame_a = cap_sync.read()
+    cap_sync.set(cv2.CAP_PROP_POS_FRAMES, frame_idx_b)
+    _, frame_b = cap_sync.read()
+    cap_sync.release()
+
+    motion_sync = cv2.absdiff(cv2.cvtColor(frame_a, cv2.COLOR_BGR2GRAY), cv2.cvtColor(frame_b, cv2.COLOR_BGR2GRAY))
+    h, w = motion_sync.shape[:2]
+
+
+
+
+
+    # Ritaglio della ROI centrale per focalizzarci sullo scaffale/interazione
+    start_y, end_y = int(h * 0.15), int(h * 0.85)
+    start_x, end_x = int(w * 0.15), int(w * 0.85)
+    roi_motion_sync = motion_sync[start_y:end_y, start_x:end_x]
+
+    print(f"    [Auto-Anchor] Vista {sync_path.name.split('_')[1]}: Picco di movimento rilevato a {anchor_seconds:.2f}s")
+
+    # =========================================================================
+    # FASE 2: RICERCA DELLA STESSA FIRMA DI MOVIMENTO NEL VIDEO ORIGINALE GREZZO
+    # =========================================================================
     cap_orig = cv2.VideoCapture(str(orig_path))
     orig_fps = cap_orig.get(cv2.CAP_PROP_FPS) or 30.0
-    max_search_frames = int((max_search_seconds + anchor_seconds) * orig_fps)
     
+    # Limitiamo il range di ricerca iniziale a 45 secondi per escludere code spurie
+    max_search_frames = int(max_search_seconds * orig_fps)
+
     best_match_frame = 0
-    min_difference = float('inf')
+    min_mae = float('inf')
+
+    frame_count = 0
+    frame_buffer = []
     
-    count = 0
-    while count < max_search_frames:
-        ret_o, frame_orig = cap_orig.read()
-        if not ret_o:
+    while frame_count < max_search_frames:
+        ret, curr_frame = cap_orig.read()
+        if not ret:
             break
+
+        gray_curr = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2GRAY)
+        if gray_curr.shape[:2] != (h, w):
+            gray_curr = cv2.resize(gray_curr, (w, h))
             
-        gray_orig = cv2.cvtColor(frame_orig, cv2.COLOR_BGR2GRAY)
-        gray_orig_resized = cv2.resize(gray_orig, (w, h))
-        roi_orig = gray_orig_resized[start_y:end_y, start_x:end_x]
-        
-        diff = cv2.absdiff(roi_sync, roi_orig)
-        mean_diff = np.mean(diff)
-        
-        if mean_diff < min_difference:
-            min_difference = mean_diff
-            best_match_frame = count
+        frame_buffer.append(gray_curr)
+
+        # Manteniamo la finestra a 3 frame coerente con il video sincronizzato
+        if len(frame_buffer) >= 3:
+            gray_anchor_orig = frame_buffer[0]
+            gray_target_orig = frame_buffer[-1]
+            frame_buffer.pop(0)
             
-        count += 1
-        
+            motion_orig = cv2.absdiff(gray_anchor_orig, gray_target_orig)
+            roi_motion_orig = motion_orig[start_y:end_y, start_x:end_x]
+            
+            # Calcolo della Mean Absolute Error (MAE) sulla dinamica (lo sfondo statico vale 0)
+            mae = np.mean(cv2.absdiff(roi_motion_sync, roi_motion_orig))
+
+            if mae < min_mae:
+                min_mae = mae
+                # Allineamento matematico dell'indice compensando la lunghezza del buffer
+                best_match_frame = frame_count - 3
+                
+        frame_count += 1
+
     cap_orig.release()
-    
-    anchor_seconds_in_orig = best_match_frame / orig_fps
-    real_start_seconds_in_orig = anchor_seconds_in_orig - anchor_seconds
-    
-    return -real_start_seconds_in_orig
+
+    # Calcolo dell'offset reale di taglio (Ground Truth temporale)
+    anchor_timestamp_in_orig = best_match_frame / orig_fps
+    real_start_cut_seconds = anchor_timestamp_in_orig - anchor_seconds
+
+    return -real_start_cut_seconds
 
 
 def get_durations(root_path: str | Path, id_name: str) -> dict[str, dict[str, float]]:
