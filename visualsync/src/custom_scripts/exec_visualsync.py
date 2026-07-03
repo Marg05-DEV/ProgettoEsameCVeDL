@@ -69,7 +69,7 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
             "rm -rf \"$TRACK_ROOT\"",
             "mkdir -p \"$TRACK_ROOT\"",
             "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only static --static_interval 3 --static_grid_step 5 --max_query_per_batch 200 --skip_exist",
-            "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --max_query_per_batch 120 --skip_exist"
+            "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --max_query_per_batch 60 --skip_exist"
         ]),
         ("Passo 9: Run MASt3R Image Matching", [
             "rm -rf \"$RESULT_ROOT\"",
@@ -479,7 +479,10 @@ if __name__ == "__main__":
                 print_metrics_report(res_definitivo)
                 
                 # Recupero dei dati computazionali storici direttamente da metrics_report.csv se presente
-                metrics_csv_path = os.path.join("custom_out", "metrics_report.csv")
+                if test_dir:
+                    metrics_csv_path = os.path.join("custom_out", test_dir, "metrics_report.csv")
+                else:
+                    metrics_csv_path = os.path.join("custom_out", "metrics_report.csv")
                 if os.path.exists(metrics_csv_path):
                     try:
                         df_metrics_history = pd.read_csv(metrics_csv_path)

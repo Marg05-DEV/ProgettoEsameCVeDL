@@ -183,7 +183,12 @@ def compute_metrics(raw_root: str | Path, result_root: str | Path, id_name: str,
     gt_sec = load_gt_or_compute_fallback(raw_root, id_name)
     if gt_sec is None:
         return {"success": False, "msg": f"Impossibile ricavare il Ground Truth per l'ID: {id_name}."}
-        
+
+    if test_dir:
+        result_root_components = (str(result_root)).split("/")
+        result_root = Path(result_root_components[0] + "_" + test_dir) / result_root_components[1]
+
+    print(result_root)
     preds_frame_raw = load_model_predictions(result_root)
     if preds_frame_raw is None:
         return {"success": False, "msg": f"File 'global_offsets.csv' assente o malformato in {result_root}."}
@@ -234,13 +239,17 @@ def main():
     parser.add_argument("--result_root", type=Path, default=os.environ.get("RESULT_ROOT"))
     parser.add_argument("--id", type=str, default=os.environ.get("GROUP"))
     parser.add_argument("--fps", type=float, default=float(os.environ.get("FPS") or 20.0))
+    parser.add_argument("--workdir", type=str, default=None)
+    parser.add_argument("--save", action="store_true", default=False)
+
+
     args = parser.parse_args()
 
     if not args.raw_root or not args.result_root or not args.id:
         print("[!] Parametri insufficienti nelle variabili d'ambiente o nei flag.", file=sys.stderr)
         sys.exit(1)
 
-    res = compute_metrics(args.raw_root, args.result_root, args.id, args.fps)
+    res = compute_metrics(args.raw_root, args.result_root, args.id, args.fps, save_to_csv=args.save, test_dir=args.workdir)
     if not res["success"]:
         print(f"[!] Errore: {res['msg']}", file=sys.stderr)
         sys.exit(1)

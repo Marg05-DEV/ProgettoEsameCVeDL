@@ -1,5 +1,6 @@
 dataset/
 visualsync/data/
+visualsync/debug/
 vissync/
 visualsync/vggt_output/
 visualsync/tracks/
