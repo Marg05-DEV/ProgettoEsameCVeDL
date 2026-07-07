@@ -79,6 +79,15 @@
     \includegraphics[width=#1\textwidth]{#2}
     \smallskip }
 
+\newcommand{\cimage}[4]{
+    \begin{figure}[h!]
+    \centering
+    \includegraphics[width=#1\textwidth]{#2}
+    \caption{#3}
+    \label{#4}
+\end{figure}
+}
+
 \newcommand{\tabimage}[2]{
     \includegraphics[width=#1\textwidth]{#2}
 }

@@ -1,6 +1,6 @@
 \graphicspath{{chapters/chapter5/img}}
 \chapter{Risultati finali} \label{risultati}
-\section{Iperparametrizzazione del range offset}
+\section{Iperparametrizzazione dell'offset range}
 \begin{flushleft}
 L'\texttt{offset\_range} è un parametro che definisce l'ampiezza, espressa in frame, della finestra di ricerca entro cui l'algoritmo valuta i possibili disallineamenti temporali tra una coppia di viste. Ovvero, dato un valore di \texttt{offset\_range = k}, il modello considera come candidati tutti gli offset interi compresi nell'intervallo [-k, +k] attorno allo zero, calcolando per ciascuno una misura di coerenza geometrica tra le corrispondenze tracciate nelle due viste, basata sulla distanza di Sampson, e andando a selezionare, come offset stimato, quello che minimizza tale misura.
 Per poter ottenere buoni risultati è consigliato impostare un offset range non elevato, in quanto, lavorando con intervalli di ricerca più ampi, possono essere introdotti introdurre falsi minimi, ovvero candidati che risultano numericamente più coerenti del vero offset ma che non corrispondono alla reale corrisposndenza temporale tra le due sequenze.
