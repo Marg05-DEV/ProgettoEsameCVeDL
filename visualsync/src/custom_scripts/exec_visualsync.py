@@ -289,7 +289,7 @@ if __name__ == "__main__":
                 start_id = int(input("ID di partenza (da CSV): "))
                 end_id = int(input("ID di arrivo (da CSV): "))
                 # Vincolo del Mentor: Niente richiesta step, si parte da 0 (None o 0 in base alla logica di run_pipeline)
-                start_step = 0
+                start_step = 11
             except ValueError:
                 print("Errore: Input ID non validi.")
                 sys.exit(1)
@@ -298,7 +298,7 @@ if __name__ == "__main__":
                 if i == start_id:
                     print("")
                 else:
-                    start_step = 0
+                    start_step = 11
 
                 # Gestione flessibile sia per formati interi che stringa ("ID_X" o X) nel CSV
                 str_key = f"ID_{i}"
