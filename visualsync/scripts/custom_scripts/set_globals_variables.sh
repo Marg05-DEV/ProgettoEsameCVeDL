@@ -6,7 +6,7 @@ START_SEC="${2:-15}"
 END_SEC="${3:-30}"
 FPS="${4:-10}"
 
-# Variabili derivate (fisse)
+# Variabili globali
 export RAW_ROOT="/app/Progetto/dataset/PRIN_DATASET/Video ed Excel"
 export GROUP
 export START_SEC

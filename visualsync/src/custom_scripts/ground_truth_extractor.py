@@ -119,7 +119,7 @@ def find_exact_start_cut_seconds(
     Trova l'istante di taglio iniziale identificando AUTOMATICAMENTE il picco di massimo
     movimento nel video sincronizzato, usandolo come firma dinamica per il matching nell'originale.
 
-    Ritorna un dizionario (invece di un solo float) per portare con sé anche
+    Ritorna un dizionario per portare con sé anche
     la confidenza del match:
         {
             "offset_seconds": float,
@@ -160,7 +160,7 @@ def find_exact_start_cut_seconds(
             break
         gray_curr_s = cv2.cvtColor(curr_f, cv2.COLOR_BGR2GRAY)
 
-        # Sottrazione consecutiva (rimane acceso solo ciò che si muove)
+        # Sottrazione consecutiva
         diff = cv2.absdiff(gray_curr_s, gray_prev_s)
         energy = np.mean(diff)
         motion_energies.append((energy, idx))
@@ -175,7 +175,6 @@ def find_exact_start_cut_seconds(
     anchor_seconds = anchor_frame_sync / sync_fps
 
     # Estraiamo la firma del movimento in quel picco usando una finestra stabile di 3 frame.
-    # Lettura SEQUENZIALE (non cap.set()) per garantire il frame esatto.
     frame_idx_b = anchor_frame_sync + 3
     cap_sync.release()
     cap_sync = cv2.VideoCapture(str(sync_path))
@@ -222,10 +221,6 @@ def find_exact_start_cut_seconds(
     frame_buffer = []
     all_maes: list[tuple[float, int]] = []
 
-    # FIX: buffer a 4 elementi -> buffer[0] e buffer[-1] distano 3 frame,
-    # coerente con il gap usato per costruire roi_motion_sync in Fase 1
-    # (con buffer a 3 elementi il gap reale era di soli 2 frame, causa
-    # dell'offset sistematico di ~1 frame osservato in validazione).
     BUFFER_SIZE = 4
     GAP = BUFFER_SIZE - 1
 
@@ -240,7 +235,7 @@ def find_exact_start_cut_seconds(
 
         frame_buffer.append(gray_curr)
 
-        # Manteniamo la finestra a 4 frame (gap reale di 3) coerente col sincronizzato
+        # Manteniamo la finestra a 4 frame  coerente col sincronizzato
         if len(frame_buffer) >= BUFFER_SIZE:
             gray_anchor_orig = frame_buffer[0]
             gray_target_orig = frame_buffer[-1]
@@ -249,7 +244,7 @@ def find_exact_start_cut_seconds(
             motion_orig = cv2.absdiff(gray_anchor_orig, gray_target_orig)
             roi_motion_orig = motion_orig[start_y:end_y, start_x:end_x]
 
-            # Calcolo della Mean Absolute Error (MAE) sulla dinamica (lo sfondo statico vale 0)
+            # Calcolo della Mean Absolute Error (MAE) sulla dinamica
             mae = np.mean(cv2.absdiff(roi_motion_sync, roi_motion_orig))
             matched_idx = frame_count - GAP
             all_maes.append((mae, matched_idx))
@@ -265,12 +260,12 @@ def find_exact_start_cut_seconds(
 
     cap_orig.release()
 
-    # --- Metrica di confidenza: quanto e' isolato il minimo trovato? ---
+    # Metrica di confidenza
     second_best_mae = None
     confidence_ratio = None
     ambiguous = True
     if all_maes:
-        exclusion_window = max(1, int(orig_fps))  # ignora candidati entro ±1s dal best match
+        exclusion_window = max(1, int(orig_fps))
         far_candidates = [m for m, idx in all_maes if abs(idx - best_match_frame) > exclusion_window]
         if far_candidates:
             second_best_mae = min(far_candidates)
@@ -283,7 +278,7 @@ def find_exact_start_cut_seconds(
         cv2.imwrite(str(debug_dir / f"{tag}_orig_match_frame_a.png"), best_orig_frame_a)
         cv2.imwrite(str(debug_dir / f"{tag}_orig_match_frame_b.png"), best_orig_frame_b)
 
-    # Calcolo dell'offset reale di taglio (Ground Truth temporale)
+    # Calcolo dell'offset reale di taglio
     anchor_timestamp_in_orig = best_match_frame / orig_fps
     real_start_cut_seconds = anchor_timestamp_in_orig - anchor_seconds
 

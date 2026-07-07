@@ -113,21 +113,21 @@ def run_pipeline(group_id, start_sec, end_sec, fps, start_from_step=None):
             
             print(f"\n{LOG_PREFIX} --- AVVIO COMPARAZIONE METRICHE PASSO 12 (NORMAL VS FLIPPED) ---")
             
-            # 1. Esecuzione del primo comando della lista (Configurazione Standard)
+            # 1. Esecuzione del primo comando della lista (Configurazione standard)
             cmd_normal = commands[0]
             if not run_command(cmd_normal, env=env, description=f"{step_name} [Normal] -> {cmd_normal[:50]}..."):
                 return False
             res_normal = compute_metrics(raw_root, result_root, id_name, fps, save_to_csv=False)
             auc_normal = res_normal["metrics"]["AUC"] if res_normal["success"] else float('inf')
             
-            # 2. Esecuzione del secondo comando della lista (Configurazione Invertita con Flip)
+            # 2. Esecuzione del secondo comando della lista (Configurazione invertita)
             cmd_flipped = commands[1]
             if not run_command(cmd_flipped, env=env, description=f"{step_name} [Flipped] -> {cmd_flipped[:50]}..."):
                 return False
             res_flipped = compute_metrics(raw_root, result_root, id_name, fps, save_to_csv=False)
             auc_flipped = res_flipped["metrics"]["AUC"] if res_flipped["success"] else float('inf')
             
-            # Valutazione scientifica e ripristino dell'ambiente vincente
+            # Valutazione della configurazione migliore tramite AUC
             if auc_normal >= auc_flipped:
                 print(f"\n[+] Scelta Ottimale: NORMAL ({auc_normal:.2f} >= {auc_flipped:.2f})")
                 run_command(cmd_normal, env=env, description="Ripristino configurazione Normal")
