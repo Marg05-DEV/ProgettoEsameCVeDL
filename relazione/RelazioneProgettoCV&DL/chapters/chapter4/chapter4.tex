@@ -1,21 +1,315 @@
 \graphicspath{{chapters/chapter4/img}}
 \chapter{Miglioramenti e ottimizzazioni architetturali} \label{miglioramenti}
-\begin{flushleft}
-L'obiettivo del lavoro è quello di testare il modello VisualSync sul dataset fornito dal docente per verificare la corretta sincronizzazione delle camere poste in punti diversi che riprendono la stessa scena. Dopo un numero elevato di test seguendo la pipeline ufficiale di VisualSync, è emerso in modo evidente, come l'andare ad eseguire molteplici comandi in sequenza, per poi ripeterli in maniera identica per ogni nuovo ID del dataset, fosse dispendioso in termini di tempo. Abbiamo quindi definito un insieme di script pensati per ottimizzare l'esecuzione velocizzando e rendendo ripetibile sia l'esecuzione del modello, sia la successiva fase di valutazione dei risultati, distinguendo due livelli di automazione: uno relativo all'esecuzione della pipeline vera e propria, l'altro relativo alla validazione quantitativa dei suoi output.    
-\end{flushleft}
+L'obiettivo del lavoro è quello di testare il modello VisualSync sul dataset fornito dal docente per verificare la corretta sincronizzazione delle camere poste in punti diversi che riprendono la stessa scena. Dopo un numero elevato di test seguendo la pipeline ufficiale di VisualSync, è emerso in modo evidente, come l'andare ad eseguire molteplici comandi in sequenza, per poi ripeterli in maniera identica per ogni nuovo ID del dataset, fosse dispendioso in termini di tempo. Abbiamo quindi definito un insieme di script pensati per ottimizzare l'esecuzione velocizzando e rendendo ripetibile sia l'esecuzione del modello, sia la successiva fase di valutazione dei risultati, distinguendo due livelli di automazione: uno relativo all'esecuzione della pipeline vera e propria, l'altro relativo alla validazione dei suoi output.
 
-\begin{flushleft}
-Il primo passo è stato lo sviluppo dello script Python \texttt{exec\_visualsync.py}, che si occupa di riportare tutti i passi definiti dal framework, in un'unica esecuzione, passando dal cropping temporale del dataset grezzo fino al calcolo degli offset globali e alla generazione del video sincronizzato multi-vista. Prima di lanciare lo script, è stato necessario verificare che sia attivo il venv, in quanto tutti gli script fanno riferimento a librerie che risiedono in questo ambiente. Una volta verificato, viene lanciato lo script dalla cartella principale del progetto attraverso il comando \texttt{python\ src/custom\_scripts/exec\_visualsync.py}. Il primo risultato del lancio dello script, è quello di proporre a schermo una sequenza di prompt interattivi con cui l'utente inserisce: l'ID o gli ID del dataset su cui lavorare, in modo da eseguire automaticamente l'intera pipeline su più ID (o su un ID) in sequenza senza dover reinserire manualmente le impostazioni per ciascuno, i parametri temporali su cui focalizzare l'analisi video indicando l'inizio dell'intevallo del video, \textit{start\_sec}, e la fine \textit{end\_sec} ed infine la frequenza di \textit{fps}. Dopo questa prima interazione con l'utente, lo script chiede anche il passo da cui eventualmente riprendere l'esecuzione, in modo tale da gestire in modo efficiente le interruzioni dovute a errori intermedi, evitando così di dover ripetere dall'inizio fasi già completate correttamente. Al termine dell'esecuzione, lo script stampa a schermo anche i tempi impiegati e i dati relativi al consumo energetico e alle emissioni di anidride carbonica stimate, così da poter correlare la durata di ciascun esperimento con il relativo impatto energetico oltre che con la qualità dei risultati ottenuti.
-Un'ulteriore funzionalià implementata all'interno dello script \texttt{exec\_visualsync.py}, è la possibilità di determinare quale configurazione di orientamento spaziale dei flussi video è quella migliore tra quella standard e quella speculare. La scelta viene effettuata in modo totalmente automatizzato, confrontando i valori di AUC di entraambe le modalità e impostando in maniera definitiva la configurazione che presenta il valore metrico più elevato.
-\end{flushleft}
+Nel capitolo seguente abbiamo riportato solo alcune parti degli script realizzati. Per poter consultare tutti gli script è possibile accedere al seguente link GitHub: 
+\url{https://github.com/Marg05-DEV/ProgettoEsameCVeDL.git}
 
-\begin{flushleft}
-Un secondo gruppo di script è stato sviluppato per automatizzare il calcolo e la verifica delle metriche di sincronizzazione, a partire dall'esigenza di confrontare in modo sistematico l'output del modello con un ground truth affidabile, evitando di dover ricalcolare manualmente le durate e gli offset per ogni soggetto testato. Lo script Python \texttt{ground\_truth\_extractor.py} va ad elaborare le durate e i contenuti sia dei video originali, sia dei video sincronizzati presenti nel dataset per ricavare gli offset di riferimento, sia pairwise che quelli globali, da utilizzare come ground truth nella valutazione dell'errore del modello. È importante osservare che la vista TPV viene presa come vista di riferimento in questo modo tutti gli offset temporali delle restanti camere, ovvero la vista TOP e la vista FPV, sono stati calcolati in relazione alla linea temporale della TPV. La versione iniziale di questo script prevedeva di sfruttare le sole durate dei video originali e di quelli sincronizzati, facendone la differenza per calcolare gli offset di ground truth, ma il risultato non era corretto a causa delle approssimazioni temporali e della staticità di alcune riprese. Nella versione finale, l'algoritmo analizza i video originali calcolando la differenza tra due frame consecutivi per catturare la "dinamica" all'interno del video. Per ottimizzare la precisione e l'efficienza della ricerca, viene isolato un momento di forte discontinuità visiva, ovvero dove c'è un picco di variazione nei pixel che identifica un movimento netto e univoco. Una volta individuato e tracciato questo cambiamento chiave all'interno del video sincronizzato, il calcolo degli offset reali è risultato estremamente preciso e corretto. Lo script può essere lanciato seguendo il comando \texttt{python src/custom\_scripts/ground\_truth\_extractor.py --root "\$RAW\_ROOT" --ids ID\_0 ID\_1}.
-Lo script \texttt{estimate\_metrics.py} si occupa di confrontare i valori di ground truth generati da \texttt{ground\_truth\_extractor.py} con l'offset stimato dal modello per un dato ID, andando a calcolare l'errore medio e mediano in millisecondi, l'accuratezza a due soglie di tolleranza, A\@100ms e A\@500ms, espresse come percentuale di viste il cui errore di sincronizzazione ricade al di sotto della rispettiva soglia  e l'Area Under Curve (AUC) come sintesi complessiva della qualità della stima. Per poter mandare in esecuzione lo script deve essere eseguito il comando \texttt{python src/custom\_scripts/estimate\_metrics.py}, che, una volta eseguito, chiede di ppter inserire l'ID e il valore dell'\textit{fps} su cui basare il test.
+
+\section{Script relativo all'esecuzione}
+Il primo passo è stato lo sviluppo dello script Python \texttt{exec\_visualsync.py}, che si occupa di riportare tutti i passi definiti dal framework, in un'unica esecuzione, passando dal cropping temporale del dataset grezzo fino al calcolo degli offset globali e alla generazione del video sincronizzato multi-vista.
+
+\begin{lstlisting}[style=pythonstyle, caption={Definizione della pipeline di elaborazione}, label={lst:pipeline_steps}]
+pipeline_steps = [
+        ("Passo 4: Preparazione del dataset", ["python src/prepare_prin_timecrop.py --raw_root \"$RAW_ROOT\" --out_root \"$DATA_ROOT\" --group \"$GROUP\" --start_sec \"$START_SEC\" --end_sec \"$END_SEC\" --fps \"$FPS\" --flip_views TOP,FPV --overwrite"]),
+        ("Passo 5: Creazione dei file tag GPT/SAM2", ["python src/create_tags.py --data_root \"$DATA_ROOT\" --dynamic hand,arm --overwrite"]),
+        ("Passo 6: Sementazione con SAM2/DINO", ["python preprocess/run_dino_sam2.py --workdir \"$DATA_ROOT\""]),
+        ("Passo 7: Camera estimation con VGGT", ["python preprocess/vggt_to_colmap.py --workdir \"$DATA_ROOT\" --vis_path vggt_output --save_colmap"]),
+        ("Passo 8: Run CoTracker", [
+            "rm -rf \"$TRACK_ROOT\"",
+            "mkdir -p \"$TRACK_ROOT\"",
+            "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only static --static_interval 3 --static_grid_step 5 --max_query_per_batch 200 --skip_exist",
+            "python src/run_cotracker_all.py --dataset_root \"$DATA_ROOT\" --track_root \"$TRACK_ROOT\" --gpu 0 --mask_prefix \"$MASK_PREFIX\" --only fpv --dynamic_interval 8 --dynamic_grid_step 10 --max_query_per_batch 60 --skip_exist"
+        ]),
+        ("Passo 9: Run MASt3R Image Matching", [
+            "rm -rf \"$RESULT_ROOT\"",
+            "mkdir -p \"$RESULT_ROOT/$GROUP\"",
+            f"CUDA_VISIBLE_DEVICES=0 python src/img_match_v4.py --dataset_root \"$DATA_ROOT\" --video1_name \"{top_name}\" --video2_name \"{tpv_name}\" --save_root \"$RESULT_ROOT/$GROUP\" --mask_prefix \"$MASK_PREFIX\" --interval 2 --batch_size 16 --filter_mask --enable_blurry",
+            f"CUDA_VISIBLE_DEVICES=0 python src/img_match_v4.py --dataset_root \"$DATA_ROOT\" --video1_name \"{tpv_name}\" --video2_name \"{fpv_name}\" --save_root \"$RESULT_ROOT/$GROUP\" --mask_prefix \"$MASK_PREFIX\" --interval 3 --batch_size 16 --filter_mask --enable_blurry",
+        ]),
+        ("Passo 10: Filter Track Correspondences", [
+            f"CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --track_root \"$TRACK_ROOT\" --result_name1 \"{top_name}\" --result_name2 \"{tpv_name}\" --group_prefix \"$GROUP\" --mask_prefix \"$MASK_PREFIX\" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096",
+            f"CUDA_VISIBLE_DEVICES=0 python src/filter_corr_v2.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --track_root \"$TRACK_ROOT\" --result_name1 \"{tpv_name}\" --result_name2 \"{fpv_name}\" --group_prefix \"$GROUP\" --mask_prefix \"$MASK_PREFIX\" --min_matches 3 --pixel_tol 10 --min_neighbors 1 --max_batch_size 4096",
+        ]),
+        ("Passo 11: VisualSync Offset Estimation", [
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{top_name}\" --video2_name \"{tpv_name}\" --offset_range 30 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt",
+            f"CUDA_VISIBLE_DEVICES=0 python src/shaowei_sync_v6.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --video1_name \"{tpv_name}\" --video2_name \"{fpv_name}\" --offset_range 30 --moving_threshold 0.5 --pixel_threshold 4 --max_batch_size 4096 --max_N 30000 --use_v2 --use_vggt --disable_gt"
+        ]),
+        ("Passo 12: Collect offset & create merged video", [
+            f"python src/collect_sync_results.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --group_name \"$GROUP\" --fps \"$FPS\" --max_seconds $((END_SEC-START_SEC)) --panel_height 480 --ignore_pair \"{top_name}__{fpv_name}\"",
+            f"python src/collect_sync_results.py --dataset_root \"$DATA_ROOT\" --result_root \"$RESULT_ROOT\" --group_name \"$GROUP\" --fps \"$FPS\" --max_seconds $((END_SEC-START_SEC)) --panel_height 480 --offset_sign -1 --out_video_dir \"$RESULT_ROOT/merged_videos_flip\" --ignore_pair \"{top_name}__{fpv_name}\""
+        ])
+    ]
+\end{lstlisting}
+
+Prima di lanciare lo script, è stato necessario verificare che sia attivo il venv, in quanto tutti gli script fanno riferimento a librerie che risiedono in questo ambiente. Una volta verificato, viene lanciato lo script dalla cartella principale del progetto attraverso il comando \texttt{python\ src/custom\_scripts/exec\_visualsync.py}. Il primo risultato del lancio dello script, è quello di proporre a schermo una sequenza di prompt interattivi con cui l'utente inserisce: l'ID o gli ID del dataset su cui lavorare, in modo da eseguire automaticamente l'intera pipeline su più ID (o su un ID singolo) in sequenza senza dover reinserire manualmente le impostazioni per ciascuno, i parametri temporali su cui focalizzare l'analisi video indicando l'inizio dell'intervallo del video, \textit{start\_sec}, e la fine \textit{end\_sec} ed infine gli \textit{fps} con cui campionare i video. Dopo questa prima interazione con l'utente, lo script chiede anche il passo da cui eventualmente riprendere l'esecuzione, in modo tale da gestire in modo efficiente le interruzioni dovute a errori intermedi, evitando così di dover ripetere dall'inizio fasi già completate correttamente. Al termine dell'esecuzione, lo script stampa a schermo anche i tempi impiegati e i dati relativi al consumo energetico e alle emissioni di anidride carbonica stimate, così da poter correlare la durata di ciascun esperimento con il relativo impatto energetico oltre che con la qualità dei risultati ottenuti.
+Inoltre, il modello dà la possibilità di passare come argomento allo script che si occupa di raccogliere i risultati della sincronizzazione, il segno dell'offset ($1$ o $-1$).
+Perciò un'ulteriore funzionalità implementata all'interno dello script \texttt{exec\_visualsync.py}, è la possibilità di determinare quale delle configurazioni è quella migliore tra quella standard e quella speculare. La scelta viene effettuata in modo totalmente automatizzato, confrontando i valori di AUC di entrambe le modalità e impostando in maniera definitiva la configurazione che presenta il valore metrico più elevato.
+
+\begin{lstlisting}[style=pythonstyle, caption={Confronto AUC tra configurazione Normal e Flipped}, label={lst:step12_comparison}]
+for step_name, commands in pipeline_steps:
+    match = re.search(r'Passo (\d+)', step_name)
+    current_step_num = int(match.group(1)) if match else 0
+
+    if start_from_step is not None and current_step_num < start_from_step:
+        continue
+
+    if current_step_num == 12:
+        raw_root = env.get("RAW_ROOT")
+        result_root = env.get("RESULT_ROOT")
+        id_name = f"ID_{group_id}"
+
+        # 1. Esecuzione del primo comando della lista (Configurazione standard)
+        cmd_normal = commands[0]
+        if not run_command(cmd_normal, env=env, description=f"{step_name} [Normal] -> {cmd_normal[:50]}..."):
+            return False
+        res_normal = compute_metrics(raw_root, result_root, id_name, fps, save_to_csv=False)
+        auc_normal = res_normal["metrics"]["AUC"] if res_normal["success"] else float('inf')
+
+        # 2. Esecuzione del secondo comando della lista (Configurazione invertita)
+        cmd_flipped = commands[1]
+        if not run_command(cmd_flipped, env=env, description=f"{step_name} [Flipped] -> {cmd_flipped[:50]}..."):
+            return False
+        res_flipped = compute_metrics(raw_root, result_root, id_name, fps, save_to_csv=False)
+        auc_flipped = res_flipped["metrics"]["AUC"] if res_flipped["success"] else float('inf')
+
+        # Valutazione della configurazione migliore tramite AUC
+        if auc_normal >= auc_flipped:
+            run_command(cmd_normal, env=env, description="Ripristino configurazione Normal")
+            os.environ["VS_LAST_OFFSET_MODE"] = "normal"
+        else:
+            os.environ["VS_LAST_OFFSET_MODE"] = "flipped"
+    else:
+        # Esecuzione standard lineare per tutti gli altri passaggi della pipeline
+        for cmd in commands:
+            if not run_command(cmd, env=env, description=f"{step_name} -> {cmd[:50]}..."):
+                return False
+\end{lstlisting}
+
+\section{Script relativi alla validazione dei risultati}
+Un secondo gruppo di script è stato sviluppato per automatizzare il calcolo e la verifica delle metriche di sincronizzazione, a partire dall'esigenza di confrontare in modo sistematico l'output del modello con un ground truth affidabile, evitando di dover ricalcolare manualmente le durate e gli offset per ogni soggetto testato. 
+
+\subsubsection{\texttt{ground\_truth\_extractor.py}}
+Lo script Python \texttt{ground\_truth\_extractor.py} va ad elaborare le durate e i contenuti sia dei video originali, sia dei video sincronizzati presenti nel dataset per ricavare gli offset di riferimento, sia pairwise che quelli globali, da utilizzare come ground truth nella valutazione dell'errore del modello. È importante osservare che la vista TPV viene presa come vista di riferimento in questo modo tutti gli offset temporali delle restanti camere, ovvero la vista TOP e la vista FPV, sono stati calcolati in relazione alla linea temporale della vista TPV. La versione iniziale di questo script prevedeva di sfruttare le sole durate dei video originali e di quelli sincronizzati, facendone la differenza per calcolare gli offset di ground truth, ma il risultato non era corretto a causa del fatto che la differenza della durata del video originale e di quello sincronizzato di ground truth, non corrispondeva con il reale offset tra le coppie di video. Dopo vari tentativi di ottimizzazione del calcolo del ground truth, siamo giunti alla versione finale dove l'algoritmo analizza i video sincronizzati calcolando la differenza tra due frame consecutivi per catturare la dinamica all'interno del video. Per ottimizzare la precisione e l'efficienza della ricerca, viene individuato un momento di forte discontinuità visiva, ovvero dove c'è un picco di variazione nei pixel che identifica un movimento netto e univoco. Una volta trovato questo cambiamento chiave all'interno del video sincronizzato, questo viene ricercato all'interno del rispettivo video originale così da poter calcolare gli offset reali in modo estremamente preciso e corretto. Lo script può essere lanciato seguendo il comando \texttt{python src/custom\_scripts/ground\_truth\_extractor.py --root "\$RAW\_ROOT" --ids ID\_0 ID\_1}.
+
+\begin{lstlisting}[style=pythonstyle, caption={Estrazione del ground truth temporale tramite matching della dinamica}, label={lst:dynamic_between_two_frame}]
+def find_exact_start_cut_seconds(
+    orig_path: Path,
+    sync_path: Path,
+    max_search_seconds: float = 60.0,
+    debug_dir: Optional[Path] = None,
+) -> dict[str, Any]:
+
+    empty_result = {
+        "offset_seconds": 0.0, "min_mae": None, "second_best_mae": None,
+        "confidence_ratio": None, "ambiguous": True,
+        "anchor_seconds": 0.0, "best_match_frame": 0,
+    }
+
+    cap_sync = cv2.VideoCapture(str(sync_path))
+    sync_fps = cap_sync.get(cv2.CAP_PROP_FPS) or 30.0
+
+    # Analizziamo i primi 30 secondi del video sincronizzato per cercare l'azione
+    search_sync_frames = int(min(30.0 * sync_fps, cap_sync.get(cv2.CAP_PROP_FRAME_COUNT) - 5))
+
+    motion_energies = []
+    ret, prev_f = cap_sync.read()
+    if not ret:
+        cap_sync.release()
+        return empty_result
+    gray_prev_s = cv2.cvtColor(prev_f, cv2.COLOR_BGR2GRAY)
+
+    # Scansione frame-by-frame per trovare il punto a massima energia cinetica
+    for idx in range(1, search_sync_frames):
+        ret, curr_f = cap_sync.read()
+        if not ret:
+            break
+        gray_curr_s = cv2.cvtColor(curr_f, cv2.COLOR_BGR2GRAY)
+
+        # Sottrazione consecutiva 
+        diff = cv2.absdiff(gray_curr_s, gray_prev_s)
+        energy = np.mean(diff)
+        motion_energies.append((energy, idx))
+        gray_prev_s = gray_curr_s
+
+    if not motion_energies:
+        cap_sync.release()
+        return empty_result
+
+    # Isoliamo il frame di picco assoluto e convertiamo in secondi
+    best_sync_energy, anchor_frame_sync = max(motion_energies, key=lambda x: x[0])
+    anchor_seconds = anchor_frame_sync / sync_fps
+
+    # Estraiamo la firma del movimento in quel picco usando una finestra stabile di 3 frame.
+    frame_idx_b = anchor_frame_sync + 3
+    cap_sync.release()
+    cap_sync = cv2.VideoCapture(str(sync_path))
+    frame_a, cur_idx = _read_frame_sequential(cap_sync, anchor_frame_sync, 0)
+    frame_b, cur_idx = _read_frame_sequential(cap_sync, frame_idx_b, cur_idx)
+    cap_sync.release()
+
+    if frame_a is None or frame_b is None:
+        return {**empty_result, "anchor_seconds": anchor_seconds}
+
+    motion_sync = cv2.absdiff(cv2.cvtColor(frame_a, cv2.COLOR_BGR2GRAY), cv2.cvtColor(frame_b, cv2.COLOR_BGR2GRAY))
+    h, w = motion_sync.shape[:2]
+
+    # Ritaglio della ROI centrale per focalizzarci sullo scaffale/interazione
+    start_y, end_y = int(h * 0.15), int(h * 0.85)
+    start_x, end_x = int(w * 0.15), int(w * 0.85)
+    roi_motion_sync = motion_sync[start_y:end_y, start_x:end_x]
+
+    if debug_dir is not None:
+        debug_dir = Path(debug_dir)
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        tag = sync_path.stem
+        cv2.imwrite(str(debug_dir / f"{tag}_sync_frame_a.png"), frame_a)
+        cv2.imwrite(str(debug_dir / f"{tag}_sync_frame_b.png"), frame_b)
+        cv2.imwrite(str(debug_dir / f"{tag}_sync_motion_roi.png"), roi_motion_sync)
+
+    cap_orig = cv2.VideoCapture(str(orig_path))
+    orig_fps = cap_orig.get(cv2.CAP_PROP_FPS) or 30.0
+
+    # Limitiamo il range di ricerca iniziale a max_search_seconds per escludere code spurie
+    max_search_frames = int(max_search_seconds * orig_fps)
+
+    best_match_frame = 0
+    min_mae = float('inf')
+    best_orig_frame_a = None
+    best_orig_frame_b = None
+
+    frame_count = 0
+    frame_buffer = []
+    all_maes: list[tuple[float, int]] = []
+
+    BUFFER_SIZE = 4
+    GAP = BUFFER_SIZE - 1
+
+    while frame_count < max_search_frames:
+        ret, curr_frame = cap_orig.read()
+        if not ret:
+            break
+
+        gray_curr = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2GRAY)
+        if gray_curr.shape[:2] != (h, w):
+            gray_curr = cv2.resize(gray_curr, (w, h))
+
+        frame_buffer.append(gray_curr)
+
+        # Manteniamo la finestra a 4 frame coerente col sincronizzato
+        if len(frame_buffer) >= BUFFER_SIZE:
+            gray_anchor_orig = frame_buffer[0]
+            gray_target_orig = frame_buffer[-1]
+            frame_buffer.pop(0)
+
+            motion_orig = cv2.absdiff(gray_anchor_orig, gray_target_orig)
+            roi_motion_orig = motion_orig[start_y:end_y, start_x:end_x]
+
+            # Calcolo della Mean Absolute Error (MAE) sulla dinamica 
+            mae = np.mean(cv2.absdiff(roi_motion_sync, roi_motion_orig))
+            matched_idx = frame_count - GAP
+            all_maes.append((mae, matched_idx))
+
+            if mae < min_mae:
+                min_mae = mae
+                # Allineamento matematico dell'indice compensando la lunghezza del buffer
+                best_match_frame = matched_idx
+                best_orig_frame_a = gray_anchor_orig
+                best_orig_frame_b = gray_target_orig
+
+        frame_count += 1
+
+    cap_orig.release()
+
+    # Metrica di confidenza
+    second_best_mae = None
+    confidence_ratio = None
+    ambiguous = True
+    if all_maes:
+        exclusion_window = max(1, int(orig_fps)) 
+        far_candidates = [m for m, idx in all_maes if abs(idx - best_match_frame) > exclusion_window]
+        if far_candidates:
+            second_best_mae = min(far_candidates)
+            if min_mae > 0:
+                confidence_ratio = second_best_mae / min_mae
+                ambiguous = confidence_ratio < AMBIGUITY_THRESHOLD
+
+    if debug_dir is not None and best_orig_frame_a is not None:
+        tag = orig_path.stem
+        cv2.imwrite(str(debug_dir / f"{tag}_orig_match_frame_a.png"), best_orig_frame_a)
+        cv2.imwrite(str(debug_dir / f"{tag}_orig_match_frame_b.png"), best_orig_frame_b)
+
+    # Calcolo dell'offset reale di taglio
+    anchor_timestamp_in_orig = best_match_frame / orig_fps
+    real_start_cut_seconds = anchor_timestamp_in_orig - anchor_seconds
+
+    return {
+        "offset_seconds": -real_start_cut_seconds,
+        "min_mae": float(min_mae) if min_mae != float('inf') else None,
+        "second_best_mae": float(second_best_mae) if second_best_mae is not None else None,
+        "confidence_ratio": float(confidence_ratio) if confidence_ratio is not None else None,
+        "ambiguous": ambiguous,
+        "anchor_seconds": anchor_seconds,
+        "best_match_frame": best_match_frame,
+    }
+\end{lstlisting}
+
+\subsubsection{\texttt{estimate\_metrics.py}}
+Lo script \texttt{estimate\_metrics.py} si occupa di confrontare i valori di ground truth generati da \texttt{ground\_truth\_extractor.py} con l'offset stimato dal modello per un dato ID, andando a calcolare l'errore medio e mediano in millisecondi, l'accuratezza a due soglie di tolleranza, A@100ms e A@500ms, espresse come percentuale di viste il cui errore di sincronizzazione ricade al di sotto della rispettiva soglia e l'Area Under the Curve (AUC) come sintesi complessiva della qualità della stima. Per poter mandare in esecuzione lo script deve essere eseguito il comando \texttt{python src/custom\_scripts/estimate\_metrics.py}, che, una volta eseguito, chiede di poter inserire l'ID e il valore dell'\textit{fps} su cui basare il test.
+
+\begin{lstlisting}[style=pythonstyle, caption={Calcolo delle metriche}, label={lst:compute_metrics}]
+    for view in ["TOP", "FPV"]:
+        gt_frame_val = gt_sec[view] * fps
+        pred_frame_val = preds_frame[view]
+        err_frame = abs(pred_frame_val - gt_frame_val)
+        err_ms = (err_frame / fps) * 1000
+        id_errors_ms[view] = err_ms
+        all_errors_ms.append(err_ms)
+        
+    errors = np.array(all_errors_ms)
+    mean_error = np.mean(errors)
+    median_error = np.median(errors)
+    a_100 = np.mean(errors <= 100.0) * 100
+    a_500 = np.mean(errors <= 500.0) * 100
+    
+    thresholds = np.linspace(0, max_auc_tau, int(max_auc_tau) + 1)
+    accuracies = [np.mean(errors <= t) for t in thresholds]
+    auc = np.trapz(accuracies, thresholds) / max_auc_tau    
+\end{lstlisting}
+
+\subsubsection{\texttt{video\_inspector.py}}
 Lo script \texttt{video\_inspector.py} consente di ispezionare visivamente i video originali del dataset, mettendo a confronto i frame delle tre viste TOP, TPV, FPV in corrispondenza degli istanti temporali di interesse. Questo script è stato impiegato principalmente come strumento diagnostico per verificare visivamente la correttezza del ground truth calcolato da \texttt{ground\_truth\_extractor.py}. Anche questo script viene lanciato con il comando \texttt{python src/custom\_scripts/video\_inspector.py}.
-Per poter ulteriormente fornire uno strumento di ottimizzazione, abbiamo introdotto lo script \texttt{run\_full\_validation.py} per lanciare con un unico comando le 3 esecuzioni descritte in precedenza, in modo tale da calcolare il ground truth di un dato ID tramite \texttt{ground\_truth\_extractor.py}, passare poi i valori a \texttt{video\_inspector.py} per un controllo di coerenza visiva, e infine fornire gli stessi dati a \texttt{estimate\_metrics.py} per il calcolo dell'errore complessivo. Il comando di lancio è \texttt{python src/custom\_scripts/run\_full\_validation.py}, anch'esso condizionato al preventivo settaggio delle variabili globali.
-\end{flushleft}
 
-\begin{flushleft}
-A monte di tutti gli script sopra descritti si colloca \texttt{set\_global\_variables.sh}, che imposta in un'unica operazione l'insieme delle variabili d'ambiente necessarie all'esecuzione: \textit{RAW\_ROOT}, in cui va indicato il percorso del dataset PRIN, \textit{GROUP}, in cui va inserito l'identificativo del soggetto, \textit{START\_SEC} e \textit{END\_SEC}, in cui va indicata la finestra temporale, \textit{FPS}, in cui vengono inseriti i frame rate di campionamento, le cartelle derivate \textit{DATA\_ROOT}, \textit{TRACK\_ROOT} e \textit{RESULT\_ROOT}, il prefisso delle maschere di segmentazione \textit{MASK\_PREFIX}, oltre al \textit{PYTHONPATH} esteso con i percorsi di MASt3R e DUST3R. QUesto script viene richiamato con il seguente comando \texttt{source scripts/custom\_scripts/set\_globals\_variables.sh ID\_<gruppo> <start\_sec> <end\_sec> <fps>}. Tutti gli altri script dipendono dalla definizione di queste variabili globali senza le quali non verrebbero eseguiti correttamente.
-\end{flushleft}
+\subsubsection{\texttt{run\_full\_validation.py}}
+Per poter ulteriormente fornire uno strumento di ottimizzazione, abbiamo introdotto lo script \texttt{run\_full\_validation.py} per lanciare con un unico comando le 3 esecuzioni descritte in precedenza, in modo tale da calcolare il ground truth di un dato ID tramite \texttt{ground\_truth\_extractor.py}, passare poi i valori a \texttt{video\_inspector.py} per un controllo di coerenza visiva, e infine fornire gli stessi dati a \texttt{estimate\_metrics.py} per il calcolo dell'errore complessivo. Il comando di lancio è \texttt{python src/custom\_scripts/run\_full\_validation.py}, anch'esso condizionato al preventivo settaggio delle variabili globali.
+
+
+\section{Script di utilità}
+A monte di tutti gli script sopra descritti si colloca \texttt{set\_global\_variables.sh}, che imposta in un'unica operazione l'insieme delle variabili d'ambiente necessarie per l'esecuzione: \textit{RAW\_ROOT}, in cui va indicato il percorso del dataset, \textit{GROUP}, in cui va inserito l'identificativo del gruppo di video da sincronizzare, \textit{START\_SEC} e \textit{END\_SEC}, in cui va indicata la finestra temporale elaborata dal modello, \textit{FPS}, in cui viene inserito il frame rate di campionamento, il percorso delle cartelle di output del modello \textit{DATA\_ROOT}, \textit{TRACK\_ROOT} e \textit{RESULT\_ROOT}, il prefisso delle maschere di segmentazione \textit{MASK\_PREFIX}, oltre al \textit{PYTHONPATH} esteso con i percorsi di MASt3R e DUST3R. Questo script viene richiamato con il seguente comando \texttt{source scripts/custom\_scripts/set\_globals\_variables.sh ID\_<gruppo> <start\_sec> <end\_sec> <fps>}. 
+
+\begin{lstlisting}[style=bashstyle, caption={Script di configurazione delle variabili globali}, label={lst:set_globals}]
+#!/bin/bash
+
+# Argomenti opzionali con valori di default
+GROUP="${1:-ID_0}"
+START_SEC="${2:-15}"
+END_SEC="${3:-30}"
+FPS="${4:-10}"
+
+# Variabili globali
+export RAW_ROOT="/app/Progetto/dataset/PRIN_DATASET/Video ed Excel"
+export GROUP
+export START_SEC
+export END_SEC
+export FPS
+export DATA_ROOT="data/prin_${GROUP}_${START_SEC}_${END_SEC}"
+export TRACK_ROOT="tracks/prin_${GROUP}_${START_SEC}_${END_SEC}"
+export RESULT_ROOT="results/prin_${GROUP}_${START_SEC}_${END_SEC}"
+export MASK_PREFIX="deva_improved"
+export PYTHONPATH="/app/Progetto/visualsync/mast3r:/app/Progetto/visualsync/mast3r/dust3r:$PYTHONPATH"
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+\end{lstlisting}
+
+
+Tutti gli altri script dipendono dalla definizione di queste variabili globali senza le quali non verrebbero eseguiti correttamente.
+

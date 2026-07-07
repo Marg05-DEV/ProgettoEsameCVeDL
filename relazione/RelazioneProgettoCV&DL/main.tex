@@ -36,11 +36,49 @@
 \usepackage{microtype}
 \usepackage{gensymb,siunitx}	%<- simboli ed unità di misura
 \usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{array}
 \hypersetup{hidelinks}
 
 \usepackage{glossaries}
 \usepackage{verbatim}
+\usepackage{listings}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shadows.blur}
+
+\lstdefinestyle{bashstyle}{
+    language=bash,
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{orange},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
+    mathescape=false
+}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\scriptsize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{orange},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    tabsize=2,
+    mathescape=false
+}
 \usepackage[a-1b]{pdfx} %<- generazione pdf-A
 
 \input{tools/macros}

@@ -82,10 +82,75 @@
 \newcommand{\cimage}[4]{
     \begin{figure}[h!]
     \centering
-    \includegraphics[width=#1\textwidth]{#2}
+    \begin{tikzpicture}
+        \node[blur shadow={shadow blur steps=6, shadow xshift=1pt, shadow yshift=-1pt, shadow opacity=40},
+              inner sep=0pt]
+              {\includegraphics[width=#1\textwidth]{#2}};
+    \end{tikzpicture}
     \caption{#3}
     \label{#4}
 \end{figure}
+}
+
+\newcommand{\cimagenos}[4]{
+    \begin{figure}[h!]
+    \centering
+    {\includegraphics[width=#1\textwidth]{#2}}
+    \caption{#3}
+    \label{#4}
+\end{figure}
+}
+
+\newcommand{\cimagesduenos}[6]{
+    \begin{figure}[h!]
+    \centering
+    {\includegraphics[width=#1\textwidth]{#2}}\hfill
+    {\includegraphics[width=#3\textwidth]{#4}}
+    \caption{#5}
+    \label{#6}
+    \end{figure}
+}
+
+
+\newcommand{\cimagesdue}[6]{
+    \begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \node[blur shadow={shadow blur steps=6, shadow xshift=1pt, shadow yshift=-1pt, shadow opacity=40},
+              inner sep=0pt]
+              {\includegraphics[width=#1\textwidth]{#2}};
+    \end{tikzpicture} \hfill
+    \begin{tikzpicture}
+        \node[blur shadow={shadow blur steps=6, shadow xshift=1pt, shadow yshift=-1pt, shadow opacity=40},
+              inner sep=0pt]
+              {\includegraphics[width=#3\textwidth]{#4}};
+    \end{tikzpicture}
+    \caption{#5}
+    \label{#6}
+    \end{figure}
+}
+
+\newcommand{\cimagestre}[8]{
+    \begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \node[blur shadow={shadow blur steps=6, shadow xshift=1pt, shadow yshift=-1pt, shadow opacity=40},
+              inner sep=0pt]
+              {\includegraphics[width=#1\textwidth]{#2}};
+    \end{tikzpicture}\hfill
+    \begin{tikzpicture}
+        \node[blur shadow={shadow blur steps=6, shadow xshift=1pt, shadow yshift=-1pt, shadow opacity=40},
+              inner sep=0pt]
+              {\includegraphics[width=#3\textwidth]{#4}};
+    \end{tikzpicture}\hfill
+    \begin{tikzpicture}
+        \node[blur shadow={shadow blur steps=6, shadow xshift=1pt, shadow yshift=-1pt, shadow opacity=40},
+              inner sep=0pt]
+              {\includegraphics[width=#5\textwidth]{#6}};
+    \end{tikzpicture}
+    \caption{#7}
+    \label{#8}
+    \end{figure}
 }
 
 \newcommand{\tabimage}[2]{
